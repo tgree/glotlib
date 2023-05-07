@@ -82,8 +82,8 @@ def _bounds(b, pad_l=PAD_H, pad_r=PAD_H, pad_b=PAD_V, pad_t=PAD_V):
     else:
         return None
 
-    return (pad_l + (1 - (pad_l + pad_r))*c[0] + 0.05,
-            pad_b + (1 - (pad_b + pad_t))*c[1] + 0.025,
+    return (pad_l + (1 - (pad_l + pad_r))*c[0],
+            pad_b + (1 - (pad_b + pad_t))*c[1],
             pad_l + (1 - (pad_l + pad_r))*c[2],
             pad_b + (1 - (pad_b + pad_t))*c[3])
 
