@@ -118,6 +118,8 @@ class Window:
         self.window = glfw.create_window(w, h, name, None, None)
 
         glfw.set_window_pos(self.window, x, y)
+        glfw.set_window_size_limits(self.window, 16, 16,
+                                    glfw.DONT_CARE, glfw.DONT_CARE)
         glfw.set_window_size_callback(
             self.window, self._handle_window_size_changed)
         glfw.set_framebuffer_size_callback(
