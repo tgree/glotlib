@@ -8,6 +8,37 @@ from . import constants
 from . import fonts
 from . import label
 
+# The window is divided up into multiple regions.  On the edge of the window,
+# we have a fixed-width (in window pixels) buffer, which can be 0.  Then we
+# have a flexible-width (in percentage of window minus the fixed region)
+# buffer, which can also be zero.  The flexible buffer grows and shrinks as the
+# window resizes, while the fixed buffer is always a constant-sized buffer,
+# suitable for things like a fixed-size status panel on the bottom of the
+# window.  Then we have the content region.  The content region is the part
+# where plot objects are flexibly rendered; the region and the plots grow/
+# shrink dynamically as the window is resized.  It all comes together something
+# like this:
+#
+#     +-----------------------------------+
+#     |            Fixed buffer           |
+#     |  +-----------------------------+  |
+#     |  |       Flexible buffer       |  |
+#     |  |  +-----------------------+  |  |
+#     |  |  |                       |  |  |
+#     |  |  |                       |  |  |
+#     |  |  |        Flexible       |  |  |
+#     |  |  |        content        |  |  |
+#     |  |  |                       |  |  |
+#     |  |  |                       |  |  |
+#     |  |  +-----------------------+  |  |
+#     |  |                             |  |
+#     |  +-----------------------------+  |
+#     |                                   |
+#     +-----------------------------------+
+#
+# The fixed and flexible buffer sizes can be individually specified for all 4
+# sides of the window.
+
 
 # This is the padding on each side of the flexible window area.  Note that
 # this amount of padding exists on the left and right sides and on the top and
