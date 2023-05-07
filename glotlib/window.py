@@ -35,7 +35,7 @@ def _bounds_hwr(h, w, r):
 
 
 def _bounds_int(b):
-    assert 100 <= b <= 999
+    assert 111 <= b <= 999
     h = b // 100
     w = (b % 100) // 10
     p = (b % 10)
