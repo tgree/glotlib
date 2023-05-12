@@ -10,6 +10,7 @@ from . import ticker
 from . import fonts
 from . import programs
 from . import colors
+from .layout import parse_bounds
 from .label import Label
 from .series import Series
 from .hline import HLine
@@ -80,6 +81,27 @@ class SquareAspect:
 
 
 class Plot:
+    '''
+    Adds a rectangular plot to the window.  The bounds value selects the
+    position of the plot as per layout.parse_bounds().
+
+    The limits 4-tuple can be used to specify the (x0, y0, x1, y1) data
+    limits that the plot will initially be looking at.
+
+    The colors parameter can specify a list of (R, G, B, A) colors to cycle
+    through for each new curve added to the plot, as floating-point values
+    from 0 to 1.
+
+    The max_h_ticks and max_v_ticks parameters can be used to specify the
+    maximum number of ticks to display on the plot, which can be useful to
+    limit spam on smaller plots.
+
+    The aspect parameter can be either Plot.ASPECT_NONE or
+    Plot.ASPECT_SQUARE, the latter which enforces the plot's data view
+    edges so that squares in the data space are rendered as squares in the
+    screen space.
+    '''
+
     ASPECT_MAP = {
         constants.ASPECT_NONE   : NoAspect,
         constants.ASPECT_SQUARE : SquareAspect,
@@ -92,7 +114,7 @@ class Plot:
         l, b, r, t = limits if limits else (-1, -1, 1, 1)
 
         self.window         = window
-        self.bounds         = bounds
+        self.bounds         = None
         self.color_iter     = (colors.cycle(_colors)
                                if _colors else colors.cycle(colors.tab10))
         self.max_h_ticks    = max_h_ticks
@@ -131,6 +153,7 @@ class Plot:
             self.v_ticks.append(Label((0, 0), '', fonts.vera(12, 0),
                                       anchor='E'))
 
+        self._set_bounds(bounds)
         self._gen_bounds()
         l, r, b, t = self._adjust_lrbt(l, r, b, t)
         self._renormalize(l, r, b, t)
@@ -157,8 +180,8 @@ class Plot:
 
     def _adjust_lrbt(self, l, r, b, t, rx=1, ry=1):
         '''
-        Given l, r, b, t bounds, adjust them so that the center point of the
-        rectangle is maintained but the edges grow/shrink as necessary to
+        Given l, r, b, t data bounds, adjust them so that the center point of
+        the rectangle is maintained but the edges grow/shrink as necessary to
         maintain the plot's data space aspect ratio.
         '''
         w    = (r - l) * rx
@@ -189,12 +212,15 @@ class Plot:
         self._gen_ticks()
 
     def _gen_bounds(self):
-        x = self.x = int((self.bounds[0] + PAD_L) * self.window.w_w)
-        y = self.y = int((self.bounds[1] + PAD_B) * self.window.w_h)
-        w = self.w = (int((self.bounds[2] - self.bounds[0] - PAD_L) *
-                      self.window.w_w))
-        h = self.h = (int((self.bounds[3] - self.bounds[1] - PAD_B) *
-                      self.window.w_h))
+        '''
+        Generates the plot border bounds in window coordinates from its
+        flexible window percentage bounds.
+        '''
+        x, y, x1, y1 = self.window.flex_bounds_to_abs_bounds(self.bounds)
+        self.x       = x
+        self.y       = y
+        w = self.w   = x1 - x
+        h = self.h   = y1 - y
 
         x += 0.5
         y += 0.5
@@ -467,8 +493,15 @@ class Plot:
         self.visible = False
         self.window.mark_dirty()
 
-    def set_bounds(self, bounds, **kwargs):
-        self.window.set_plot_bounds(self, bounds, **kwargs)
+    def _set_bounds(self, bounds):
+        bounds      = parse_bounds(bounds)
+        self.bounds = (bounds[0] + PAD_L, bounds[1] + PAD_B,
+                       bounds[2], bounds[3])
+
+    def set_bounds(self, bounds):
+        self._set_bounds(bounds)
+        self._gen_bounds()
+        self._gen_ticks()
 
     def draw(self, t):
         GL.glViewport(0, 0, self.window.fb_w, self.window.fb_h)

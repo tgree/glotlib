@@ -39,84 +39,18 @@ from . import label
 # The fixed and flexible buffer sizes can be individually specified for all 4
 # sides of the window.
 
-
-# This is the padding on each side of the flexible window area.  Note that
-# this amount of padding exists on the left and right sides and on the top and
-# bottom sides, so the total padding is double these values.
-PAD_H = 0.05
-PAD_V = 0.05
-
-
-def _bounds_hwp(h, w, p):
-    '''
-    Given a grid of height h and width w, returns the bounds (l, b, r, t) of
-    the grid cell p, with coordinates as percentages of the total grid.  The
-    value p is specified by numbering the grid cells as follows:
-
-        1, 2, 3, 4,
-        5, 6, 7, 8,
-        ...
-
-    Note that the first cell is numbered 1.
-    '''
-    p -= 1
-    y  = h - (p // w) - 1
-    x  = p % w
-
-    return (x / w, y / h, (x + 1) / w, (y + 1) / h)
+# This is the padding on each side of the fixed window area.
+FIXED_L = 0
+FIXED_R = 0
+FIXED_B = 0
+FIXED_T = 0
 
 
-def _bounds_hwr(h, w, r):
-    '''
-    Given a grid of height h and width w, and a tuple r (p0, p1), returns the
-    bounds (l, b, r, t) of the smallest rectangle fully enclosing both p0 and
-    p1, with coordinates as percentages of the total grid.  The values p0 and
-    p1 arespecified by numbering the grid cells as follows:
-
-        1, 2, 3, 4,
-        5, 6, 7, 8,
-        ...
-
-    Note that the first cell is numbered 1.  In the example above, the range
-    (2, 7) and (7, 2) would specify the same rectangle, covering all of cells
-    2, 3, 6 and 7.
-    '''
-    b0 = _bounds_hwp(h, w, r[0])
-    b1 = _bounds_hwp(h, w, r[1])
-    return (min(b0[0], b1[0]), min(b0[1], b1[1]),
-            max(b0[2], b1[2]), max(b0[3], b1[3]))
-
-
-def _bounds_int(b):
-    '''
-    Given the value b, in the range 111 to 999, interpret the value as thought
-    the first digit were the height of the grid, the second digit were the
-    width of the grid and the third digit was the position p in the grid, and
-    then use _boudns_hwp() to compute the coordinates.
-    '''
-    assert 111 <= b <= 999
-    h = b // 100
-    w = (b % 100) // 10
-    p = (b % 10)
-    return _bounds_hwp(h, w, p)
-
-
-def _bounds(b, pad_l=PAD_H, pad_r=PAD_H, pad_b=PAD_V, pad_t=PAD_V):
-    if isinstance(b, int):
-        c = _bounds_int(b)
-    elif isinstance(b, tuple) and len(b) == 3 and isinstance(b[2], int):
-        c = _bounds_hwp(*b)
-    elif isinstance(b, tuple) and len(b) == 3 and isinstance(b[2], tuple):
-        c = _bounds_hwr(*b)
-    elif isinstance(b, tuple) and len(b) == 4:
-        c = b
-    else:
-        return None
-
-    return (pad_l + (1 - (pad_l + pad_r))*c[0],
-            pad_b + (1 - (pad_b + pad_t))*c[1],
-            pad_l + (1 - (pad_l + pad_r))*c[2],
-            pad_b + (1 - (pad_b + pad_t))*c[3])
+# This is the padding on each side of the flexible window area.
+FLEX_L = 0.05
+FLEX_R = 0.05
+FLEX_B = 0.05
+FLEX_T = 0.05
 
 
 MOUSE_BUTTONS = {
@@ -137,7 +71,8 @@ class MouseButtonState:
 
 class Window:
     def __init__(self, w, h, x=100, y=100, name='', msaa=None,
-                 clear_color=(1, 1, 1)):
+                 clear_color=(1, 1, 1),
+                 flex_pad=(FLEX_L, FLEX_B, FLEX_R, FLEX_T)):
         glotlib.main.add_window(self)
 
         glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
@@ -166,8 +101,9 @@ class Window:
 
         self.w_w, self.w_h   = glfw.get_window_size(self.window)
         self.fb_w, self.fb_h = glfw.get_framebuffer_size(self.window)
-        self.r_w = self.r_h  = 0
-        self.mvp = matrix.ortho(0, self.w_w, 0, self.w_h, -1, 1)
+        self.r_w, self.r_h   = 0, 0
+        self.mvp             = matrix.ortho(0, self.w_w, 0, self.w_h, -1, 1)
+        self.flex_pad        = flex_pad
         self._update_ratios()
 
         glotlib.init_fonts()
@@ -309,51 +245,22 @@ class Window:
     def draw(self, t):
         pass
 
-    def add_plot(self, bounds=111, **kwargs):
-        '''
-        Adds a rectangular plot to the window.  The bounds value selects the
-        position of the plot and can have one of the following formats:
-
-            HWP - a set of 3 integers encoded either as a 3-digit decimal
-                  number with H, W, P in the hundreds, tens and ones positions,
-                  respectively, or as a 3-tuple (H, W, P).  H and W divide the
-                  window space into a grid of height H and width W and P
-                  selects the grid cell numbered from 1 to H*W left-to-right
-                  and then top-to-bottom.
-
-            HWR - a 3-tuple (H, W, (r0, r1)) where the H and W values are the
-                  same as HWP format but the plot rectangle will have the
-                  bounds of the smallest rectangle that fully encloses both the
-                  grid cells at positions r0 and r1.
-
-            (x0, y0, x1, y1) - a 4-tuple specifying the bottom-left and top-
-                  right positions of the bounding rectangle, expressed as a
-                  fraction from 0 to 1 which scaled with the dimensions of the
-                  enclosing window.
-
-        The limits 4-tuple can be used to specify the (x0, y0, x1, y1) data
-        limits that the plot will initially be looking at.
-
-        The colors parameter can specify a list of (R, G, B, A) colors to cycle
-        through for each new curve added to the plot, as floating-point values
-        from 0 to 1.
-
-        The max_h_ticks and max_v_ticks parameters can be used to specify the
-        maximum number of ticks to display on the plot, which can be useful to
-        limit spam on smaller plots.
-
-        The aspect parameter can be either Plot.ASPECT_NONE or
-        Plot.ASPECT_SQUARE, the latter which enforces the plot's data view
-        edges so that squares in the data space are rendered as squares in the
-        screen space.
-        '''
-        p = glotlib.plot.Plot(self, bounds=_bounds(bounds), **kwargs)
+    def add_plot(self, bounds=(0, 0, 1, 1), **kwargs):
+        p = glotlib.plot.Plot(self, bounds=bounds, **kwargs)
         self.plots.append(p)
         return p
 
-    def set_plot_bounds(self, plot, bounds, **kwargs):
-        plot.bounds = _bounds(bounds, **kwargs)
-        plot._handle_resize()
+    def flex_bounds_to_abs_bounds(self, bounds):
+        '''
+        Given flexible bounds as percentages of the flexible content area,
+        return the absolute bounds in window pixels.
+        '''
+        flex_l, flex_b, flex_r, flex_t = self.flex_pad
+        return (
+            int((flex_l + (1 - (flex_l + flex_r)) * bounds[0]) * self.w_w),
+            int((flex_b + (1 - (flex_b + flex_t)) * bounds[1]) * self.w_h),
+            int((flex_l + (1 - (flex_l + flex_r)) * bounds[2]) * self.w_w),
+            int((flex_b + (1 - (flex_b + flex_t)) * bounds[3]) * self.w_h))
 
     def add_label(self, *args, font=None, **kwargs):
         font = font or fonts.vera(12, 0)
