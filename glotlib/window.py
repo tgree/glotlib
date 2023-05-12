@@ -41,16 +41,16 @@ from . import label
 
 # This is the padding on each side of the fixed window area.
 FIXED_L = 0
-FIXED_R = 0
+FIXED_R = 10
 FIXED_B = 0
-FIXED_T = 0
+FIXED_T = 10
 
 
 # This is the padding on each side of the flexible window area.
-FLEX_L = 0.05
-FLEX_R = 0.05
-FLEX_B = 0.05
-FLEX_T = 0.05
+FLEX_L = 0
+FLEX_R = 0
+FLEX_B = 0
+FLEX_T = 0
 
 
 MOUSE_BUTTONS = {
@@ -72,7 +72,8 @@ class MouseButtonState:
 class Window:
     def __init__(self, w, h, x=100, y=100, name='', msaa=None,
                  clear_color=(1, 1, 1),
-                 flex_pad=(FLEX_L, FLEX_B, FLEX_R, FLEX_T)):
+                 flex_pad=(FLEX_L, FLEX_B, FLEX_R, FLEX_T),
+                 fixed_pad=(FIXED_L, FIXED_B, FIXED_R, FIXED_T)):
         glotlib.main.add_window(self)
 
         glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
@@ -83,8 +84,10 @@ class Window:
             glfw.window_hint(glfw.SAMPLES, 4)
         self.window = glfw.create_window(w, h, name, None, None)
 
+        min_w = fixed_pad[0] + fixed_pad[2] + 8
+        min_h = fixed_pad[1] + fixed_pad[3] + 8
         glfw.set_window_pos(self.window, x, y)
-        glfw.set_window_size_limits(self.window, 16, 16,
+        glfw.set_window_size_limits(self.window, min_w, min_h,
                                     glfw.DONT_CARE, glfw.DONT_CARE)
         glfw.set_window_size_callback(
             self.window, self._handle_window_size_changed)
@@ -104,6 +107,7 @@ class Window:
         self.r_w, self.r_h   = 0, 0
         self.mvp             = matrix.ortho(0, self.w_w, 0, self.w_h, -1, 1)
         self.flex_pad        = flex_pad
+        self.fixed_pad       = fixed_pad
         self._update_ratios()
 
         glotlib.init_fonts()
@@ -256,11 +260,14 @@ class Window:
         return the absolute bounds in window pixels.
         '''
         flex_l, flex_b, flex_r, flex_t = self.flex_pad
+        fix_l, fix_b, fix_r, fix_t = self.fixed_pad
+        w_w = self.w_w - fix_l - fix_r
+        w_h = self.w_h - fix_t - fix_b
         return (
-            int((flex_l + (1 - (flex_l + flex_r)) * bounds[0]) * self.w_w),
-            int((flex_b + (1 - (flex_b + flex_t)) * bounds[1]) * self.w_h),
-            int((flex_l + (1 - (flex_l + flex_r)) * bounds[2]) * self.w_w),
-            int((flex_b + (1 - (flex_b + flex_t)) * bounds[3]) * self.w_h))
+            fix_l + int((flex_l + (1 - (flex_l + flex_r)) * bounds[0]) * w_w),
+            fix_b + int((flex_b + (1 - (flex_b + flex_t)) * bounds[1]) * w_h),
+            fix_l + int((flex_l + (1 - (flex_l + flex_r)) * bounds[2]) * w_w),
+            fix_b + int((flex_b + (1 - (flex_b + flex_t)) * bounds[3]) * w_h))
 
     def add_label(self, *args, font=None, **kwargs):
         font = font or fonts.vera(12, 0)

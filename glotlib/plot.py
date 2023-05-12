@@ -18,8 +18,10 @@ from .vline import VLine
 from .step_series import StepSeries
 
 
-PAD_L       = 0.05
-PAD_B       = 0.025
+PAD_L       = 0.5
+PAD_B       = 0.5
+MAX_PAD_L   = 40
+MAX_PAD_B   = 16
 MAX_H_TICKS = 10
 MAX_V_TICKS = 7
 
@@ -216,11 +218,21 @@ class Plot:
         Generates the plot border bounds in window coordinates from its
         flexible window percentage bounds.
         '''
+        r_w = self.window.r_w
+        r_h = self.window.r_h
+
         x, y, x1, y1 = self.window.flex_bounds_to_abs_bounds(self.bounds)
-        self.x       = x
-        self.y       = y
-        w = self.w   = x1 - x
-        h = self.h   = y1 - y
+        w            = x1 - x
+        h            = y1 - y
+
+        x     += int(min(PAD_L * w, MAX_PAD_L))
+        y     += int(min(PAD_B * h, MAX_PAD_B))
+        self.x = x
+        self.y = y
+        w      = (x1 - x)
+        h      = (y1 - y)
+        self.w = w
+        self.h = h
 
         x += 0.5
         y += 0.5
@@ -232,10 +244,10 @@ class Plot:
         y += 0.5
         w -= 1
         h -= 1
-        self.fb_x  = round(x * self.window.fb_w / self.window.w_w)
-        self.fb_y  = round(y * self.window.fb_h / self.window.w_h)
-        self.fb_w  = round(w * self.window.fb_w / self.window.w_w)
-        self.fb_h  = round(h * self.window.fb_h / self.window.w_h)
+        self.fb_x = round(x * r_w)
+        self.fb_y = round(y * r_h)
+        self.fb_w = round(w * r_w)
+        self.fb_h = round(h * r_h)
 
     def _renormalize(self, l, r, b, t):
         self.rmatrix  = matrix.ortho(l, r, b, t, -1, 1, dtype=np.float64)
@@ -494,9 +506,7 @@ class Plot:
         self.window.mark_dirty()
 
     def _set_bounds(self, bounds):
-        bounds      = parse_bounds(bounds)
-        self.bounds = (bounds[0] + PAD_L, bounds[1] + PAD_B,
-                       bounds[2], bounds[3])
+        self.bounds = parse_bounds(bounds)
 
     def set_bounds(self, bounds):
         self._set_bounds(bounds)
