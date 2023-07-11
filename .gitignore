@@ -1,0 +1,8 @@
+*.swp
+*.pyc
+dist/
+*.egg-info/
+!/etc/udev/rules.d
+build/
+*.csv
+.DS_Store
