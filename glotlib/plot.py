@@ -17,6 +17,8 @@ from .vline import VLine
 from .step_series import StepSeries
 
 
+PAD_L       = 0.05
+PAD_B       = 0.025
 MAX_H_TICKS = 10
 MAX_V_TICKS = 7
 
@@ -187,10 +189,12 @@ class Plot:
         self._gen_ticks()
 
     def _gen_bounds(self):
-        x = self.x = int(self.bounds[0] * self.window.w_w)
-        y = self.y = int(self.bounds[1] * self.window.w_h)
-        w = self.w = int((self.bounds[2] - self.bounds[0]) * self.window.w_w)
-        h = self.h = int((self.bounds[3] - self.bounds[1]) * self.window.w_h)
+        x = self.x = int((self.bounds[0] + PAD_L) * self.window.w_w)
+        y = self.y = int((self.bounds[1] + PAD_B) * self.window.w_h)
+        w = self.w = (int((self.bounds[2] - self.bounds[0] - PAD_L) *
+                      self.window.w_w))
+        h = self.h = (int((self.bounds[3] - self.bounds[1] - PAD_B) *
+                      self.window.w_h))
 
         x += 0.5
         y += 0.5
