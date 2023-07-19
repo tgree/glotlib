@@ -8,13 +8,14 @@ from . import programs
 from . import fonts
 
 
-INITED       = False
-FONTS_INITED = False
-WINDOWS      = set()
-TASKS        = set()
-FRAME        = 0
-T0           = 0
-FPS          = 0
+INITED          = False
+FONTS_INITED    = False
+WINDOWS         = set()
+TASKS           = set()
+FRAME           = 0
+T0              = 0
+FPS             = 0
+SHOULD_INTERACT = False
 
 
 def init():
@@ -112,14 +113,16 @@ def animate():
 
 def interact():
     global T0
+    global SHOULD_INTERACT
 
     programs.load()
     GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
 
     T0 = time.time()
 
+    SHOULD_INTERACT = True
     draw_windows(0)
-    while True:
+    while SHOULD_INTERACT:
         glfw.wait_events()
 
         del_ws = [w for w in WINDOWS if w.should_close()]
@@ -135,6 +138,12 @@ def interact():
 
 def wakeup():
     glfw.post_empty_event()
+
+
+def stop():
+    global SHOULD_INTERACT
+    SHOULD_INTERACT = False
+    wakeup()
 
 
 def _periodic_thread_func(dt, callback):
