@@ -17,8 +17,6 @@ from .vline import VLine
 from .step_series import StepSeries
 
 
-PLOT_PAD_H  = 20
-PLOT_PAD_V  = 20
 MAX_H_TICKS = 10
 MAX_V_TICKS = 7
 
