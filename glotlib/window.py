@@ -18,7 +18,15 @@ PAD_V = 0.05
 
 def _bounds_hwp(h, w, p):
     '''
-    Returns bounds (l, b, r, t).
+    Given a grid of height h and width w, returns the bounds (l, b, r, t) of
+    the grid cell p, with coordinates as percentages of the total grid.  The
+    value p is specified by numbering the grid cells as follows:
+
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        ...
+
+    Note that the first cell is numbered 1.
     '''
     p -= 1
     y  = h - (p // w) - 1
@@ -28,6 +36,20 @@ def _bounds_hwp(h, w, p):
 
 
 def _bounds_hwr(h, w, r):
+    '''
+    Given a grid of height h and width w, and a tuple r (p0, p1), returns the
+    bounds (l, b, r, t) of the smallest rectangle fully enclosing both p0 and
+    p1, with coordinates as percentages of the total grid.  The values p0 and
+    p1 arespecified by numbering the grid cells as follows:
+
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        ...
+
+    Note that the first cell is numbered 1.  In the example above, the range
+    (2, 7) and (7, 2) would specify the same rectangle, covering all of cells
+    2, 3, 6 and 7.
+    '''
     b0 = _bounds_hwp(h, w, r[0])
     b1 = _bounds_hwp(h, w, r[1])
     return (min(b0[0], b1[0]), min(b0[1], b1[1]),
@@ -35,6 +57,12 @@ def _bounds_hwr(h, w, r):
 
 
 def _bounds_int(b):
+    '''
+    Given the value b, in the range 111 to 999, interpret the value as thought
+    the first digit were the height of the grid, the second digit were the
+    width of the grid and the third digit was the position p in the grid, and
+    then use _boudns_hwp() to compute the coordinates.
+    '''
     assert 111 <= b <= 999
     h = b // 100
     w = (b % 100) // 10
