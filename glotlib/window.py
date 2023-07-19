@@ -336,6 +336,9 @@ class Window:
                 return p
         return None
 
+    def close(self):
+        glfw.set_window_should_close(self.window, glfw.TRUE)
+
     def should_close(self):
         return glfw.window_should_close(self.window)
 
