@@ -39,7 +39,7 @@ def make(v, none_iter):
             r = int(v[1:3], 16)
             g = int(v[3:5], 16)
             b = int(v[5:7], 16)
-            return (r, g, b, 1)
+            return (r / 0xFF, g / 0xFF, b / 0xFF, 1)
         return named_colors[v]
 
     raise Exception('Cannot convert %s to a color.' % (v,))

@@ -1,7 +1,7 @@
 from . import miter_lines  # noqa: F401
 from .label import Label
-from .main import (init_fonts, animate, interact, wakeup, get_frame_time, FPS,
-                   get_fps, periodic)
+from .main import (init_fonts, animate, interact, stop, wakeup, get_frame_time,
+                   FPS, get_fps, periodic)
 from .program import Program
 from .window import Window
 
@@ -27,6 +27,7 @@ __all__ = [
     'periodic',
     'Label',
     'Program',
+    'stop',
     'wakeup',
     'Window',
 ]
