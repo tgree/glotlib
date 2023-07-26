@@ -265,10 +265,6 @@ class Plot:
         max_y    = max(abs(mb), abs(mt))
         renorm_x = (max_x > mvp_w * K / window_w)
         renorm_y = (max_y > mvp_h * K / window_h)
-        if renorm_x:
-            print('Horizontal renorm required.')
-        if renorm_y:
-            print('Vertical renorm required.')
         if renorm_x or renorm_y:
             self._renormalize(l, r, b, t)
 
