@@ -15,7 +15,7 @@ all: glotlib
 
 .PHONY: clean
 clean:
-	rm -rf dist psdb.egg-info build
+	rm -rf dist *.egg-info build
 	find . -name "*.pyc" | xargs rm 2>/dev/null || true
 	find . -name __pycache__ | xargs rm -r 2>/dev/null || true
 
