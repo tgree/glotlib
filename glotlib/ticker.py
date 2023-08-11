@@ -53,7 +53,7 @@ def _text_for_val(v, K):
         return '0'
 
     K      = max(K, 0)
-    digits = math.floor(math.log(abs(v) * 10**K, 10)) + 1
+    digits = math.floor(math.log10(abs(v))) + K + 1
     text   = '%#.*g' % (digits, v)
     if text[-1] == '.':
         return text[:-1]
@@ -74,6 +74,7 @@ assert _text_for_val(32700, -2) == '32700'
 assert _text_for_val(32700, -1) == '32700'
 assert _text_for_val(32700,  0) == '32700'
 assert _text_for_val(32700,  1) == '32700.0'
+assert _text_for_val(1000, -2) == '1000'
 assert _text_for_val(0.0001, 5) == '0.00010'
 assert _text_for_val(0.00001, 6) == '1.0e-05'
 assert _text_for_val(0.00001, 7) == '1.00e-05'

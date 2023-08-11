@@ -1,4 +1,4 @@
-GLOTLIB_VERS := 0.9.2
+GLOTLIB_VERS := 0.9.3
 MODULES := \
 	setup.cfg \
 	setup.py \
@@ -6,7 +6,7 @@ MODULES := \
 	glotlib/shaders/*.frag \
 	glotlib/shaders/*.vert \
 	glotlib/font_files/*.py \
-	glotlib/font_files/ttf-bitstream-vera-1.10/* \
+	glotlib/font_files/ttf_bitstream_vera_1_10/* \
 	glotlib/*.py
 PYTHON := python3
 
@@ -15,7 +15,7 @@ all: glotlib
 
 .PHONY: clean
 clean:
-	rm -rf dist psdb.egg-info build
+	rm -rf dist *.egg-info build
 	find . -name "*.pyc" | xargs rm 2>/dev/null || true
 	find . -name __pycache__ | xargs rm -r 2>/dev/null || true
 
