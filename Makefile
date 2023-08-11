@@ -6,7 +6,7 @@ MODULES := \
 	glotlib/shaders/*.frag \
 	glotlib/shaders/*.vert \
 	glotlib/font_files/*.py \
-	glotlib/font_files/ttf-bitstream-vera-1.10/* \
+	glotlib/font_files/ttf_bitstream_vera_1_10/* \
 	glotlib/*.py
 PYTHON := python3
 

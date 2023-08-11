@@ -1,4 +1,5 @@
 import importlib.resources
+import sys
 
 from OpenGL import GL
 from OpenGL.GL import shaders
@@ -18,9 +19,13 @@ class Program:
 
     @staticmethod
     def from_resource(anchor, v_path, f_path, **kwargs):
-        files  = importlib.resources.files(anchor)
-        v_text = files.joinpath(v_path).read_text()
-        f_text = files.joinpath(f_path).read_text()
+        if sys.version_info < (3, 9):
+            v_text = importlib.resources.read_text(anchor, v_path)
+            f_text = importlib.resources.read_text(anchor, f_path)
+        else:
+            files  = importlib.resources.files(anchor)
+            v_text = files.joinpath(v_path).read_text()
+            f_text = files.joinpath(f_path).read_text()
         return Program(v_text, f_text, **kwargs)
 
     @staticmethod
@@ -52,7 +57,11 @@ class Program:
 
 class BuiltinProgram(Program):
     def __init__(self, v_path, f_path, **kwargs):
-        files  = importlib.resources.files('glotlib.shaders')
-        v_text = files.joinpath(v_path).read_text()
-        f_text = files.joinpath(f_path).read_text()
+        if sys.version_info < (3, 9):
+            v_text = importlib.resources.read_text('glotlib.shaders', v_path)
+            f_text = importlib.resources.read_text('glotlib.shaders', f_path)
+        else:
+            files  = importlib.resources.files('glotlib.shaders')
+            v_text = files.joinpath(v_path).read_text()
+            f_text = files.joinpath(f_path).read_text()
         super().__init__(v_text, f_text, **kwargs)

@@ -1,4 +1,6 @@
 import importlib.resources
+import sys
+import os
 
 import numpy as np
 import freetype
@@ -144,10 +146,16 @@ class Font:
 
 
 class Face:
-    def __init__(self, name):
-        files = importlib.resources.files('glotlib.font_files')
-        with files.joinpath(name).open('rb') as btye_stream:
-            self.face = freetype.Face(btye_stream)
+    def __init__(self, family, name):
+        if sys.version_info < (3, 9):
+            with importlib.resources.open_binary(
+                    'glotlib.font_files.%s' % family, name) as byte_stream:
+                self.face = freetype.Face(byte_stream)
+        else:
+            name  = os.path.join(family, name)
+            files = importlib.resources.files('glotlib.font_files')
+            with files.joinpath(name).open('rb') as byte_stream:
+                self.face = freetype.Face(byte_stream)
 
         self.sizes = {}
 
