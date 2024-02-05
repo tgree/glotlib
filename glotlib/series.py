@@ -112,6 +112,17 @@ class Series:
         Y += self.plot.rmatrix[1][3]
         self.vert_vbo.set_x_y_data(X, Y)
 
+    def append_x_y_data(self, X, Y):
+        X = np.array(X, dtype=np.float64, copy=False)
+        Y = np.array(Y, dtype=np.float64, copy=False)
+        self.vertices = np.concatenate((self.vertices, np.column_stack((X, Y))))
+
+        X  = X * self.plot.rmatrix[0][0]
+        X += self.plot.rmatrix[0][3]
+        Y  = Y * self.plot.rmatrix[1][1]
+        Y += self.plot.rmatrix[1][3]
+        self.vert_vbo.append_x_y_data(X, Y)
+
     def draw(self, _t, z, mvp, resolution):
         if self.width and len(self.vert_vbo) >= 2:
             GL.glBindVertexArray(self.line_vao)
