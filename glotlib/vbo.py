@@ -1,20 +1,28 @@
+import math
 from ctypes import c_void_p
 
 import numpy as np
 from OpenGL import GL
 
 
+def ceil_pow2(v):
+    return (1 << math.ceil(math.log2(v)))
+
+
 class VBO:
     '''
     This class holds a set of vertices in float32 format, bound to a hardware
-    VBO.  This class does not store the original vertices at all.  The VBO
-    remains bound to GL_ARRAY_BUFFER after initialization.
+    VBO.  This class does not store the original vertices at all; the vertices
+    field in the VBO stores renormalized data while the Series object contains
+    the original data.  The VBO remains bound to GL_ARRAY_BUFFER after
+    initialization.
     '''
     def __init__(self, vertices=None, ncomponents=None,
                  gl_type=GL.GL_DYNAMIC_DRAW):
         self.vertices = None
         self.gl_type  = gl_type
         self.vbo      = GL.glGenBuffers(1)
+        self.capacity = 0
 
         if vertices is not None and ncomponents:
             assert len(vertices[0]) == ncomponents
@@ -35,7 +43,16 @@ class VBO:
 
     def _update_vbo(self):
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, self.vertices, self.gl_type)
+
+        # Enlarge the VBO if necessary.
+        if self.capacity < len(self.vertices):
+            self.capacity = ceil_pow2(len(self.vertices))
+            GL.glBufferData(GL.GL_ARRAY_BUFFER,
+                            4 * self.ncomponents * self.capacity,
+                            None, self.gl_type)
+
+        # Sub in the data.
+        GL.glBufferSubData(GL.GL_ARRAY_BUFFER, 0, self.vertices)
 
     def _attrib_pointer(self, unit, offset=0):
         GL.glVertexAttribPointer(unit, self.ncomponents, GL.GL_FLOAT,
