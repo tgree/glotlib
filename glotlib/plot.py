@@ -419,8 +419,8 @@ class Plot:
             if len(s.vertices) == 0:
                 continue
 
-            sl, sb = s.vertices.min(axis=0)
-            sr, st = s.vertices.max(axis=0)
+            sl, sb = np.nanmin(s.vertices, axis=0)
+            sr, st = np.nanmax(s.vertices, axis=0)
             l = min(l, sl)
             b = min(b, sb)
             r = max(r, sr)
