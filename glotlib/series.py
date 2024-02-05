@@ -71,15 +71,11 @@ class Series:
         if len(self.vertices) == 0:
             return
 
-        V  = self.vertices[:, 0] * self.plot.rmatrix[0][0]
-        V += self.plot.rmatrix[0][3]
-        self.vert_vbo.vertices[:, 0] = V
-
-        V  = self.vertices[:, 1] * self.plot.rmatrix[1][1]
-        V += self.plot.rmatrix[1][3]
-        self.vert_vbo.vertices[:, 1]  = V
-
-        self.vert_vbo._update_vbo()
+        X  = self.vertices[:, 0] * self.plot.rmatrix[0][0]
+        X += self.plot.rmatrix[0][3]
+        Y  = self.vertices[:, 1] * self.plot.rmatrix[1][1]
+        Y += self.plot.rmatrix[1][3]
+        self.vert_vbo.set_x_y_data(X, Y)
 
     def set_x_data(self, X):
         '''
