@@ -109,7 +109,7 @@ class VBO:
         else:
             self.vertices[:, 0] = X
             self.vertices[:, 1] = Y
-        self._update_vbo()
+            self._update_vbo()
 
 
 class StaticVBO(VBO):
