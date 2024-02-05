@@ -71,15 +71,11 @@ class Series:
         if len(self.vertices) == 0:
             return
 
-        V  = self.vertices[:, 0] * self.plot.rmatrix[0][0]
-        V += self.plot.rmatrix[0][3]
-        self.vert_vbo.vertices[:, 0] = V
-
-        V  = self.vertices[:, 1] * self.plot.rmatrix[1][1]
-        V += self.plot.rmatrix[1][3]
-        self.vert_vbo.vertices[:, 1]  = V
-
-        self.vert_vbo._update_vbo()
+        X  = self.vertices[:, 0] * self.plot.rmatrix[0][0]
+        X += self.plot.rmatrix[0][3]
+        Y  = self.vertices[:, 1] * self.plot.rmatrix[1][1]
+        Y += self.plot.rmatrix[1][3]
+        self.vert_vbo.set_x_y_data(X, Y)
 
     def set_x_data(self, X):
         '''
@@ -115,6 +111,17 @@ class Series:
         Y  = Y * self.plot.rmatrix[1][1]
         Y += self.plot.rmatrix[1][3]
         self.vert_vbo.set_x_y_data(X, Y)
+
+    def append_x_y_data(self, X, Y):
+        X = np.array(X, dtype=np.float64, copy=False)
+        Y = np.array(Y, dtype=np.float64, copy=False)
+        self.vertices = np.concatenate((self.vertices, np.column_stack((X, Y))))
+
+        X  = X * self.plot.rmatrix[0][0]
+        X += self.plot.rmatrix[0][3]
+        Y  = Y * self.plot.rmatrix[1][1]
+        Y += self.plot.rmatrix[1][3]
+        self.vert_vbo.append_x_y_data(X, Y)
 
     def draw(self, _t, z, mvp, resolution):
         if self.width and len(self.vert_vbo) >= 2:

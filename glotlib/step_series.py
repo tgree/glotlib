@@ -32,6 +32,10 @@ class StepSeries(series.Series):
         super().set_y_data(vY)
 
     def set_x_y_data(self, X, Y):
+        if len(X) == 0:
+            super().set_x_y_data(X, Y)
+            return
+
         vX       = np.empty(len(X) * 2 - 1, dtype=np.float64)
         vX[0::2] = X
         vX[1::2] = X[0:len(X) - 1]
@@ -41,3 +45,20 @@ class StepSeries(series.Series):
         vY[1::2] = Y[1:len(Y)]
 
         super().set_x_y_data(vX, vY)
+
+    def append_x_y_data(self, X, Y):
+        if len(X) == 0:
+            return
+
+        if len(self.vertices) != 0:
+            super().append_x_y_data([X[0]], [self.vertices[-1][1]])
+
+        vX       = np.empty(len(X) * 2 - 1, dtype=np.float64)
+        vX[0::2] = X
+        vX[1::2] = X[0:len(X) - 1]
+
+        vY       = np.empty(len(Y) * 2 - 1, dtype=np.float64)
+        vY[0::2] = Y
+        vY[1::2] = Y[1:len(Y)]
+
+        super().append_x_y_data(vX, vY)

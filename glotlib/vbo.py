@@ -1,20 +1,28 @@
+import math
 from ctypes import c_void_p
 
 import numpy as np
 from OpenGL import GL
 
 
+def ceil_pow2(v):
+    return (1 << math.ceil(math.log2(v)))
+
+
 class VBO:
     '''
     This class holds a set of vertices in float32 format, bound to a hardware
-    VBO.  This class does not store the original vertices at all.  The VBO
-    remains bound to GL_ARRAY_BUFFER after initialization.
+    VBO.  This class does not store the original vertices at all; the vertices
+    field in the VBO stores renormalized data while the Series object contains
+    the original data.  The VBO remains bound to GL_ARRAY_BUFFER after
+    initialization.
     '''
     def __init__(self, vertices=None, ncomponents=None,
                  gl_type=GL.GL_DYNAMIC_DRAW):
         self.vertices = None
         self.gl_type  = gl_type
         self.vbo      = GL.glGenBuffers(1)
+        self.capacity = 0
 
         if vertices is not None and ncomponents:
             assert len(vertices[0]) == ncomponents
@@ -33,9 +41,28 @@ class VBO:
     def __len__(self):
         return len(self.vertices)
 
-    def _update_vbo(self):
+    def _sub_vbo_tail(self, N):
+        '''
+        Writes the last N values of self.vertices to the VBO, enlarging the
+        VBO buffer if necessary.
+        '''
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
-        GL.glBufferData(GL.GL_ARRAY_BUFFER, self.vertices, self.gl_type)
+
+        # Enlarge the VBO and copy it all in if necessary.
+        if self.capacity < len(self.vertices):
+            self.capacity = ceil_pow2(len(self.vertices))
+            GL.glBufferData(GL.GL_ARRAY_BUFFER,
+                            4 * self.ncomponents * self.capacity,
+                            None, self.gl_type)
+            N = len(self.vertices)
+
+        # Sub in the new data.
+        offset = 4 * self.ncomponents * (len(self.vertices) - N)
+        size   = 4 * self.ncomponents * N
+        GL.glBufferSubData(GL.GL_ARRAY_BUFFER, offset, size, self.vertices[-N:])
+
+    def _update_vbo(self):
+        self._sub_vbo_tail(len(self.vertices))
 
     def _attrib_pointer(self, unit, offset=0):
         GL.glVertexAttribPointer(unit, self.ncomponents, GL.GL_FLOAT,
@@ -92,7 +119,18 @@ class VBO:
         else:
             self.vertices[:, 0] = X
             self.vertices[:, 1] = Y
-        self._update_vbo()
+            self._update_vbo()
+
+    def append_x_y_data(self, X, Y):
+        '''
+        Appends the specified X and Y components to the 2-component VBO.  This
+        doesn't work for VBOs with more than 2 components.
+        '''
+        assert len(X) == len(Y)
+        self.vertices = np.concatenate(
+                (self.vertices,
+                 np.column_stack((X, Y)).astype(np.float32, copy=False)))
+        self._sub_vbo_tail(len(X))
 
 
 class StaticVBO(VBO):
