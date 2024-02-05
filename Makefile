@@ -1,4 +1,4 @@
-GLOTLIB_VERS := 0.9.3
+GLOTLIB_VERS := 0.9.4
 MODULES := \
 	setup.cfg \
 	setup.py \
