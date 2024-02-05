@@ -32,6 +32,10 @@ class StepSeries(series.Series):
         super().set_y_data(vY)
 
     def set_x_y_data(self, X, Y):
+        if len(X) == 0:
+            super().set_x_y_data(X, Y)
+            return
+
         vX       = np.empty(len(X) * 2 - 1, dtype=np.float64)
         vX[0::2] = X
         vX[1::2] = X[0:len(X) - 1]
