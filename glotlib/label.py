@@ -47,6 +47,7 @@ class Label:
         self.halign    = alignment[0]
         self.valign    = alignment[1]
         self.width     = 0
+        self.height    = 0
         self.nvertices = 0
 
         self.vao      = GL.glGenVertexArrays(1)
@@ -64,20 +65,24 @@ class Label:
         self.set_text(text)
 
     def _update_mvp(self):
-        dx         = round(self.width * self.halign / 2)
-        dy         = round(self.font.ascender * self.valign / 2)
-        anchor_pos = (self.pos[0] - dx, self.pos[1] - dy)
-        self.mvp = matrix.translate(*anchor_pos) @ matrix.rotate(self.theta)
+        dx = round(self.width * self.halign / 2)
+        dy = round(self.height * self.valign / 2)
+        self.mvp = (
+            matrix.translate(*self.pos) @
+            matrix.rotate(self.theta) @
+            matrix.translate(-dx, -dy)
+            )
 
     def set_text(self, text):
         if text == self.text:
             return False
 
-        vertices, tex_coords, width, _ = self.font.gen_vertices_left(text)
+        vertices, tex_coords, width, height = self.font.gen_vertices_left(text)
 
         self.text      = text
         self.nvertices = len(vertices)
         self.width     = width
+        self.height    = height
         if self.nvertices:
             GL.glBindVertexArray(self.vao)
             GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.geom_vbo)
