@@ -132,6 +132,22 @@ class VBO:
                  np.column_stack((X, Y)).astype(np.float32, copy=False)))
         self._sub_vbo_tail(len(X))
 
+    def sub_x_y_data(self, index, X, Y):
+        '''
+        Substitutes X and Y components starting at the specified index.  The
+        data will be extended if the data to be substituted in goes past the
+        end of the existing data.
+        '''
+        assert len(X) == len(Y)
+        assert index <= len(self.vertices)
+        sub_data     = np.column_stack((X, Y)).astype(np.float32, copy=False)
+        overlap_data = sub_data[:len(self.vertices) - index]
+        new_data     = sub_data[len(self.vertices) - index:]
+        if len(overlap_data):
+            self.vertices[-len(overlap_data):] = overlap_data
+        self.vertices = np.concatenate((self.vertices, new_data))
+        self._sub_vbo_tail(len(X))
+
 
 class StaticVBO(VBO):
     def __init__(self, *args, **kwargs):
