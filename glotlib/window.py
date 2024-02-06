@@ -131,6 +131,8 @@ class Window:
         glfw.set_key_callback(self.window, self._handle_key_event)
         glfw.set_window_refresh_callback(self.window,
                                          self._handle_window_refresh)
+        glfw.set_window_iconify_callback(self.window,
+                                         self._handle_window_iconified)
         glfw.make_context_current(self.window)
 
         self.w_w, self.w_h   = glfw.get_window_size(self.window)
@@ -151,9 +153,10 @@ class Window:
 
         self.mouse_button_state = [None] * (glfw.MOUSE_BUTTON_LAST + 1)
 
-        self.plots  = []
-        self.labels = []
-        self._dirty = True
+        self.plots      = []
+        self.labels     = []
+        self._dirty     = True
+        self._iconified = False
 
     def _destroy(self):
         glfw.destroy_window(self.window)
@@ -165,6 +168,9 @@ class Window:
         self.r_h = self.fb_h / self.w_h if self.w_h else 0
 
     def _handle_window_size_changed(self, _window, w, h):
+        if self._iconified:
+            return
+
         self.w_w, self.w_h = w, h
         self.mvp = matrix.ortho(0, self.w_w, 0, self.w_h, -1, 1)
         self._update_ratios()
@@ -175,9 +181,15 @@ class Window:
         self.handle_window_size_changed()
 
     def _handle_framebuffer_size_changed(self, _window, w, h):
+        if self._iconified:
+            return
+
         self.fb_w, self.fb_h = w, h
         self._update_ratios()
         self.handle_framebuffer_size_changed()
+
+    def _handle_window_iconified(self, _window, iconified):
+        self._iconified = iconified
 
     def handle_window_size_changed(self):
         pass
@@ -245,6 +257,8 @@ class Window:
 
     def _draw(self, t):
         if not self.update_geometry(t) and not self._dirty:
+            return False
+        if self._iconified:
             return False
         self._dirty = False
 
