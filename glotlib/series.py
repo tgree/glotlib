@@ -112,16 +112,27 @@ class Series:
         Y += self.plot.rmatrix[1][3]
         self.vert_vbo.set_x_y_data(X, Y)
 
-    def append_x_y_data(self, X, Y):
+    def sub_x_y_data(self, index, X, Y):
+        if len(X) == 0:
+            return
+
         X = np.array(X, dtype=np.float64, copy=False)
         Y = np.array(Y, dtype=np.float64, copy=False)
-        self.vertices = np.concatenate((self.vertices, np.column_stack((X, Y))))
+        V = np.column_stack((X, Y))
+        overlap_v = V[:len(self.vertices) - index]
+        new_v     = V[len(self.vertices) - index:]
+        if len(overlap_v):
+            self.vertices[-len(overlap_v):] = overlap_v
+        self.vertices = np.concatenate((self.vertices, new_v))
 
         X  = X * self.plot.rmatrix[0][0]
         X += self.plot.rmatrix[0][3]
         Y  = Y * self.plot.rmatrix[1][1]
         Y += self.plot.rmatrix[1][3]
-        self.vert_vbo.append_x_y_data(X, Y)
+        self.vert_vbo.sub_x_y_data(index, X, Y)
+
+    def append_x_y_data(self, X, Y):
+        self.sub_x_y_data(len(self.vertices), X, Y)
 
     def draw(self, _t, z, mvp, resolution):
         if self.width and len(self.vert_vbo) >= 2:

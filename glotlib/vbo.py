@@ -121,15 +121,20 @@ class VBO:
             self.vertices[:, 1] = Y
             self._update_vbo()
 
-    def append_x_y_data(self, X, Y):
+    def sub_x_y_data(self, index, X, Y):
         '''
-        Appends the specified X and Y components to the 2-component VBO.  This
-        doesn't work for VBOs with more than 2 components.
+        Substitutes X and Y components starting at the specified index.  The
+        data will be extended if the data to be substituted in goes past the
+        end of the existing data.
         '''
         assert len(X) == len(Y)
-        self.vertices = np.concatenate(
-                (self.vertices,
-                 np.column_stack((X, Y)).astype(np.float32, copy=False)))
+        assert index <= len(self.vertices)
+        sub_data     = np.column_stack((X, Y)).astype(np.float32, copy=False)
+        overlap_data = sub_data[:len(self.vertices) - index]
+        new_data     = sub_data[len(self.vertices) - index:]
+        if len(overlap_data):
+            self.vertices[-len(overlap_data):] = overlap_data
+        self.vertices = np.concatenate((self.vertices, new_data))
         self._sub_vbo_tail(len(X))
 
 
