@@ -9,6 +9,9 @@ def ortho(l, r, b, t, n, f, dtype=np.float32):
     This matrix starts by translating the center point of each component to the
     origin and then scaling the resulting vector.
     '''
+    if r == l or b == t:
+        return scale(0, 0)
+
     return np.array(
         [[2 / (r - l), 0,           0,           (r + l) / (l - r)],
          [0,           2 / (t - b), 0,           (t + b) / (b - t)],
