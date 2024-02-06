@@ -121,17 +121,6 @@ class VBO:
             self.vertices[:, 1] = Y
             self._update_vbo()
 
-    def append_x_y_data(self, X, Y):
-        '''
-        Appends the specified X and Y components to the 2-component VBO.  This
-        doesn't work for VBOs with more than 2 components.
-        '''
-        assert len(X) == len(Y)
-        self.vertices = np.concatenate(
-                (self.vertices,
-                 np.column_stack((X, Y)).astype(np.float32, copy=False)))
-        self._sub_vbo_tail(len(X))
-
     def sub_x_y_data(self, index, X, Y):
         '''
         Substitutes X and Y components starting at the specified index.  The
