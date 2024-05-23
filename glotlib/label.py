@@ -115,7 +115,7 @@ class Label:
         GL.glDisable(GL.GL_BLEND)
 
     def draw_batched(self, mvp):
-        if not self.nvertices:
+        if not self.nvertices or not self.visible:
             return
 
         mvp = mvp @ self.mvp
