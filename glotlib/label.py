@@ -33,10 +33,11 @@ ALIGNMENTS = {
 
 
 class Label:
-    def __init__(self, pos, text, font=None, theta=0, anchor='SW',
+    def __init__(self, window, pos, text, font=None, theta=0, anchor='SW',
                  visible=True):
         assert font
 
+        self.window    = window
         self.font      = font
         self.pos       = (round(pos[0]), round(pos[1]))
         self.theta     = theta
@@ -122,13 +123,20 @@ class Label:
         GL.glBindVertexArray(self.vao)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.nvertices)
 
+    def show(self):
+        self.visible = True
+        self.window.mark_dirty()
+
+    def hide(self):
+        self.visible = False
+        self.window.mark_dirty()
+
 
 class FlexLabel(Label):
     def __init__(self, window, pos, *args, **kwargs):
-        self.window   = window
         self.flex_pos = pos
         pos           = (pos[0] * window.w_w, pos[1] * window.w_h)
-        super().__init__(pos, *args, **kwargs)
+        super().__init__(window, pos, *args, **kwargs)
 
     def _handle_resize(self):
         pos = (self.flex_pos[0] * self.window.w_w,
@@ -140,11 +148,3 @@ class FlexLabel(Label):
         pos           = (pos[0] * self.window.w_w,
                          pos[1] * self.window.w_h)
         super().set_pos(pos)
-
-    def show(self):
-        self.visible = True
-        self.window.mark_dirty()
-
-    def hide(self):
-        self.visible = False
-        self.window.mark_dirty()

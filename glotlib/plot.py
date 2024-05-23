@@ -125,10 +125,10 @@ class Plot:
         self.sharey.add(self)
 
         for _ in range(max_h_ticks):
-            self.h_ticks.append(Label((0, 0), '', fonts.vera(12, 0),
+            self.h_ticks.append(Label(window, (0, 0), '', fonts.vera(12, 0),
                                       anchor='N'))
         for _ in range(max_v_ticks):
-            self.v_ticks.append(Label((0, 0), '', fonts.vera(12, 0),
+            self.v_ticks.append(Label(window, (0, 0), '', fonts.vera(12, 0),
                                       anchor='E'))
 
         self._gen_bounds()
