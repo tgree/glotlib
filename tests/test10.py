@@ -33,7 +33,8 @@ class Window(glotlib.Window):
         self.series += [self.plot.add_steps(X=[], Y=[], width=1, point_width=1)
                         for _ in AMP_RATES[-1:]]
         self.index = 0
-        self.label = self.add_label((0, 1), '', font=fonts.vera(20, 1), anchor='NW')
+        self.label = self.add_label((0, 1), '', font=fonts.vera(20, 1),
+                                    anchor='NW')
 
     def update_geometry(self, t):
         if self.index >= 10000000:

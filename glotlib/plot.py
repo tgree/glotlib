@@ -125,11 +125,18 @@ class Plot:
         self.sharey.add(self)
 
         for _ in range(max_h_ticks):
-            self.h_ticks.append(Label((0, 0), '', fonts.vera(12, 0),
+            self.h_ticks.append(Label(window, (0, 0), '', fonts.vera(12, 0),
                                       anchor='N'))
         for _ in range(max_v_ticks):
-            self.v_ticks.append(Label((0, 0), '', fonts.vera(12, 0),
+            self.v_ticks.append(Label(window, (0, 0), '', fonts.vera(12, 0),
                                       anchor='E'))
+
+        self.x_label = Label(window, (0, 0), '', fonts.vera(12, 0), anchor='N',
+                             visible=False)
+        self.x_label_side = 'bottom'
+        self.y_label = Label(window, (0, 0), '', fonts.vera(12, 0), anchor='S',
+                             visible=False, theta=math.pi / 2)
+        self.y_label_side = 'left'
 
         self._gen_bounds()
         l, r, b, t = self._adjust_lrbt(l, r, b, t)
@@ -242,6 +249,23 @@ class Plot:
             else:
                 v_t.pos = (0, 0)
                 v_t.set_text('')
+
+        self._gen_labels()
+
+    def _gen_labels(self):
+        if self.x_label_side == 'bottom':
+            x_ticks_height = max(h_t.height for h_t in self.h_ticks)
+            self.x_label.set_pos((self.x + self.w / 2,
+                                  self.y - x_ticks_height - 6))
+        else:
+            self.x_label.set_pos((self.x + self.w / 2, self.y + self.h + 18))
+
+        if self.y_label_side == 'left':
+            y_ticks_width = max(v_t.width for v_t in self.v_ticks)
+            self.y_label.set_pos((self.x - y_ticks_width - 16,
+                                  self.y + self.h / 2))
+        else:
+            self.y_label.set_pos((self.x + self.w + 16, self.y + self.h / 2))
 
     def _gen_mvp_from_limits(self, l, r, b, t):
         '''
@@ -455,6 +479,26 @@ class Plot:
         self._gen_mvp_from_limits(l, r, b, t)
         self._gen_ticks()
 
+    def set_x_label(self, t, side='bottom'):
+        self.x_label.set_text(t)
+        if t != '':
+            self.x_label.show()
+        else:
+            self.x_label.hide()
+        self.x_label_side = side
+        self._gen_labels()
+        self.window.mark_dirty()
+
+    def set_y_label(self, t, side='left'):
+        self.y_label.set_text(t)
+        if t != '':
+            self.y_label.show()
+        else:
+            self.y_label.hide()
+        self.y_label_side = side
+        self._gen_labels()
+        self.window.mark_dirty()
+
     def show(self):
         self.visible = True
         self.window.mark_dirty()
@@ -483,6 +527,8 @@ class Plot:
             h_t.draw_batched(self.window.mvp)
         for v_t in self.v_ticks:
             v_t.draw_batched(self.window.mvp)
+        self.x_label.draw_batched(self.window.mvp)
+        self.y_label.draw_batched(self.window.mvp)
         GL.glDisable(GL.GL_BLEND)
 
         GL.glViewport(self.fb_x, self.fb_y, self.fb_w, self.fb_h)

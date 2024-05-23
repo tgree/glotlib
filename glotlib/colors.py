@@ -22,8 +22,7 @@ named_colors = {
 
 def cycle(iterable):
     while iterable:
-        for e in iterable:
-            yield e
+        yield from iterable
 
 
 def make(v, none_iter):

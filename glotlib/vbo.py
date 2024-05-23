@@ -108,7 +108,7 @@ class VBO:
     def set_x_y_data(self, X, Y):
         '''
         Replaces the first and second components of all vertices with the
-        specifeid X and Y values, which must both be the same length and match
+        specified X and Y values, which must both be the same length and match
         the number of entries in the current vertices list, unless the current
         vertices list is only comprised of (x, y) vertices in which case it can
         simply replace them all.
