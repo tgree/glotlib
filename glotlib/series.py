@@ -27,12 +27,13 @@ class Series:
     MIN_LEN = None
 
     def __init__(self, plot, vertices, color=None, width=1,
-                 point_width=None):
+                 point_width=None, visible=True):
         self.plot        = plot
         self.vertices    = vertices
         self.color       = color
         self.width       = width
         self.point_width = point_width
+        self.visible     = visible
 
         self.line_vao = GL.glGenVertexArrays(1)
         GL.glBindVertexArray(self.line_vao)
@@ -58,6 +59,12 @@ class Series:
         GL.glEnableVertexAttribArray(0)
 
         GL.glBindVertexArray(0)
+
+    def show(self):
+        self.visible = True
+
+    def hide(self):
+        self.visible = False
 
     def renormalize(self):
         '''
@@ -135,6 +142,9 @@ class Series:
         self.sub_x_y_data(len(self.vertices), X, Y)
 
     def draw(self, _t, z, mvp, resolution):
+        if not self.visible:
+            return
+
         if self.width and len(self.vert_vbo) >= 2:
             GL.glBindVertexArray(self.line_vao)
             programs.square_line.use(self.width, z, mvp, color=self.color,

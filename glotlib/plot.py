@@ -440,7 +440,7 @@ class Plot:
         l = b = math.inf
         r = t = -math.inf
         for s in self.series:
-            if len(s.vertices) == 0:
+            if not s.visible or len(s.vertices) == 0:
                 continue
 
             sl, sb = np.nanmin(s.vertices, axis=0)
