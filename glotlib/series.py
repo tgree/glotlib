@@ -90,7 +90,7 @@ class Series:
         array and update the VBO data stored on the GPU with the normalized
         vertex data.
         '''
-        X  = np.array(X, dtype=np.float64, copy=False)
+        X  = np.asarray(X, dtype=np.float64)
         V  = X * self.plot.rmatrix[0][0]
         V += self.plot.rmatrix[0][3]
         self.vertices[:, 0] = X
@@ -102,15 +102,15 @@ class Series:
         array and update the VBO data stored on the GPU with the normalized
         vertex data.
         '''
-        Y  = np.array(Y, dtype=np.float64, copy=False)
+        Y  = np.asarray(Y, dtype=np.float64)
         V  = Y * self.plot.rmatrix[1][1]
         V += self.plot.rmatrix[1][3]
         self.vertices[:, 1] = Y
         self.vert_vbo.set_y_data(V)
 
     def set_x_y_data(self, X, Y):
-        X = np.array(X, dtype=np.float64, copy=False)
-        Y = np.array(Y, dtype=np.float64, copy=False)
+        X = np.asarray(X, dtype=np.float64)
+        Y = np.asarray(Y, dtype=np.float64)
         self.vertices = np.column_stack((X, Y))
 
         X  = X * self.plot.rmatrix[0][0]
@@ -123,8 +123,8 @@ class Series:
         if len(X) == 0:
             return
 
-        X = np.array(X, dtype=np.float64, copy=False)
-        Y = np.array(Y, dtype=np.float64, copy=False)
+        X = np.asarray(X, dtype=np.float64)
+        Y = np.asarray(Y, dtype=np.float64)
         V = np.column_stack((X, Y))
         overlap_v = V[:len(self.vertices) - index]
         new_v     = V[len(self.vertices) - index:]
