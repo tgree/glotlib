@@ -88,7 +88,7 @@ class Plot:
     def __init__(self, window, bounds=(0, 0, 1, 1), limits=None, _colors=None,
                  max_h_ticks=MAX_H_TICKS, max_v_ticks=MAX_V_TICKS,
                  aspect=constants.ASPECT_NONE, sharex=None, sharey=None,
-                 visible=True, label_font=None):
+                 visible=True, label_font=None, border_width=1):
         l, b, r, t = limits if limits else (-1, -1, 1, 1)
 
         self.window         = window
@@ -118,6 +118,7 @@ class Plot:
         self.series         = []
         self.graph_artists  = []
         self.border_lines   = glotlib.miter_lines.from_points([(0, 0)] * 6)
+        self.border_width   = border_width
         self.h_ticks        = []
         self.v_ticks        = []
 
@@ -517,7 +518,8 @@ class Plot:
     def draw(self, t):
         GL.glViewport(0, 0, self.window.fb_w, self.window.fb_h)
         self.border_lines.bind(0)
-        self.border_lines.use_program(1, 0, self.window.mvp, (0, 0, 0, 1),
+        self.border_lines.use_program(self.border_width, 0, self.window.mvp,
+                                      (0, 0, 0, 1),
                                       (self.window.w_w, self.window.w_h))
         self.border_lines.draw()
 
