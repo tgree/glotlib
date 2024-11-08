@@ -88,7 +88,7 @@ class Plot:
     def __init__(self, window, bounds=(0, 0, 1, 1), limits=None, _colors=None,
                  max_h_ticks=MAX_H_TICKS, max_v_ticks=MAX_V_TICKS,
                  aspect=constants.ASPECT_NONE, sharex=None, sharey=None,
-                 visible=True):
+                 visible=True, label_font=None):
         l, b, r, t = limits if limits else (-1, -1, 1, 1)
 
         self.window         = window
@@ -124,17 +124,19 @@ class Plot:
         self.sharex.add(self)
         self.sharey.add(self)
 
+        self.label_font = label_font or fonts.vera(12, 0)
+
         for _ in range(max_h_ticks):
-            self.h_ticks.append(Label(window, (0, 0), '', fonts.vera(12, 0),
+            self.h_ticks.append(Label(window, (0, 0), '', self.label_font,
                                       anchor='N'))
         for _ in range(max_v_ticks):
-            self.v_ticks.append(Label(window, (0, 0), '', fonts.vera(12, 0),
+            self.v_ticks.append(Label(window, (0, 0), '', self.label_font,
                                       anchor='E'))
 
-        self.x_label = Label(window, (0, 0), '', fonts.vera(12, 0), anchor='N',
+        self.x_label = Label(window, (0, 0), '', self.label_font, anchor='N',
                              visible=False)
         self.x_label_side = 'bottom'
-        self.y_label = Label(window, (0, 0), '', fonts.vera(12, 0), anchor='S',
+        self.y_label = Label(window, (0, 0), '', self.label_font, anchor='S',
                              visible=False, theta=math.pi / 2)
         self.y_label_side = 'left'
 
@@ -262,10 +264,12 @@ class Plot:
 
         if self.y_label_side == 'left':
             y_ticks_width = max(v_t.width for v_t in self.v_ticks)
-            self.y_label.set_pos((self.x - y_ticks_width - 16,
+            self.y_label.set_pos((self.x - y_ticks_width -
+                                  (self.label_font.size + 4),
                                   self.y + self.h / 2))
         else:
-            self.y_label.set_pos((self.x + self.w + 16, self.y + self.h / 2))
+            self.y_label.set_pos((self.x + self.w + self.label_font.size + 4,
+                                  self.y + self.h / 2))
 
     def _gen_mvp_from_limits(self, l, r, b, t):
         '''
@@ -517,7 +521,7 @@ class Plot:
                                       (self.window.w_w, self.window.w_h))
         self.border_lines.draw()
 
-        fonts.vera(12, 0).bind(0)
+        self.label_font.bind(0)
         programs.text.useProgram()
         programs.text.uniform1f('u_z', 0)
         programs.text.uniform4f('u_color', 0, 0, 0, 1)
