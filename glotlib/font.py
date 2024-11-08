@@ -75,7 +75,8 @@ class Glyph:
 
 
 class Font:
-    def __init__(self, tex_data, glyphs, oversample_log2, ascender, height):
+    def __init__(self, tex_data, glyphs, oversample_log2, ascender, height,
+                 size):
         self.tex_data   = tex_data
         self.tex_w      = tex_data.shape[1]
         self.tex_h      = tex_data.shape[0]
@@ -83,6 +84,7 @@ class Font:
         self.oversample = (1 << oversample_log2)
         self.ascender   = ascender
         self.height     = height
+        self.size       = size
         self.tex        = GL.glGenTextures(1)
         self.bind_unit  = None
 
@@ -223,4 +225,4 @@ class Face:
             x += w
 
         return Font(tex_data, glyphs, oversample_log2, asc,
-                    self.face.size.height)
+                    self.face.size.height, size)
