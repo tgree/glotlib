@@ -121,6 +121,7 @@ class Plot:
         self.border_width   = border_width
         self.h_ticks        = []
         self.v_ticks        = []
+        self.snapped        = False
 
         self.sharex.add(self)
         self.sharey.add(self)
@@ -297,6 +298,8 @@ class Plot:
         if renorm_x or renorm_y:
             self._renormalize(l, r, b, t)
 
+        self.snapped = False
+
     def _gen_mvp_from_dimensions_and_point(self, w, h, d_point, p_point):
         '''
         Generates mvp and mvpi such that we will be viewing a rectangle of
@@ -460,13 +463,13 @@ class Plot:
         if b == t:
             b -= 0.5
             t += 0.5
-        if l >= r or b >= t:
-            return
+        if l < r and b < t:
+            l, r, b, t = self._adjust_lrbt(l, r, b, t, 1.05, 1.05)
+            self._gen_mvp_from_limits(l, r, b, t)
+            self._gen_ticks()
+            self._update_shared_axes()
 
-        l, r, b, t = self._adjust_lrbt(l, r, b, t, 1.05, 1.05)
-        self._gen_mvp_from_limits(l, r, b, t)
-        self._gen_ticks()
-        self._update_shared_axes()
+        self.snapped = True
 
     def _set_x_lim(self, l, r):
         _, _, b, t = self._get_data_bounds()
