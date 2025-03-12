@@ -118,7 +118,8 @@ def interact():
     SHOULD_INTERACT = True
     draw_contexts(0)
     while SHOULD_INTERACT:
-        glfw.wait_events()
+        # TODO: Get a HID event from glfw.
+        # glfw.wait_events()
 
         del_ws = [w for w in CONTEXTS if w.should_close()]
         for w in del_ws:
