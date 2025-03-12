@@ -23,60 +23,48 @@ MAX_H_TICKS = 10
 MAX_V_TICKS = 7
 
 
-class DragState:
-    def __init__(self, plot, mbs):
-        self.plot            = plot
-        self.mbs             = mbs
-        self.click_fb_point  = plot._window_to_data(mbs.click_x, mbs.click_y)
-
-    def handle_mouse_moved(self, x, y):
-        self.plot._gen_mvp_from_point(self.click_fb_point, (x, y))
-        self.plot._gen_ticks()
-        self.plot._update_shared_axes()
-
-
 class NoAspect:
     @staticmethod
-    def apply(wh, _window_wh):
+    def apply(wh, _context_wh):
         return wh
 
     @staticmethod
-    def adjust_vert(wh, _window_wh):
+    def adjust_vert(wh, _context_wh):
         return wh
 
     @staticmethod
-    def adjust_horiz(wh, _window_wh):
+    def adjust_horiz(wh, _context_wh):
         return wh
 
 
 class SquareAspect:
     @staticmethod
-    def apply(wh, window_wh):
+    def apply(wh, context_wh):
         '''
         Grow the dimension of the smaller axis until a square aspect ratio is
         achieved.
         '''
-        window_aspect = window_wh[0] / window_wh[1]
-        wh_aspect     = wh[0] / wh[1]
-        if window_aspect < wh_aspect:
-            return (wh[0], wh[0] / window_aspect)
-        return (wh[1] * window_aspect, wh[1])
+        context_aspect = context_wh[0] / context_wh[1]
+        wh_aspect      = wh[0] / wh[1]
+        if context_aspect < wh_aspect:
+            return (wh[0], wh[0] / context_aspect)
+        return (wh[1] * context_aspect, wh[1])
 
     @staticmethod
-    def adjust_vert(wh, window_wh):
+    def adjust_vert(wh, context_wh):
         '''
         Adjust the vertical dimension to achieve a square aspect ratio.
         '''
-        window_aspect = window_wh[1] / window_wh[0]
-        return (wh[0], wh[0] * window_aspect)
+        context_aspect = context_wh[1] / context_wh[0]
+        return (wh[0], wh[0] * context_aspect)
 
     @staticmethod
-    def adjust_horiz(wh, window_wh):
+    def adjust_horiz(wh, context_wh):
         '''
         Adjust the horizontal dimension to achieve a square aspect ratio.
         '''
-        window_aspect = window_wh[0] / window_wh[1]
-        return (wh[1] * window_aspect, wh[1])
+        context_aspect = context_wh[0] / context_wh[1]
+        return (wh[1] * context_aspect, wh[1])
 
 
 class Plot:
@@ -85,13 +73,13 @@ class Plot:
         constants.ASPECT_SQUARE : SquareAspect,
     }
 
-    def __init__(self, window, bounds=(0, 0, 1, 1), limits=None, _colors=None,
+    def __init__(self, context, bounds=(0, 0, 1, 1), limits=None, _colors=None,
                  max_h_ticks=MAX_H_TICKS, max_v_ticks=MAX_V_TICKS,
                  aspect=constants.ASPECT_NONE, sharex=None, sharey=None,
                  visible=True, label_font=None, border_width=1):
         l, b, r, t = limits if limits else (-1, -1, 1, 1)
 
-        self.window         = window
+        self.context        = context
         self.bounds         = bounds
         self.color_iter     = (colors.cycle(_colors)
                                if _colors else colors.cycle(colors.tab10))
@@ -114,7 +102,6 @@ class Plot:
         self.mvp            = None
         self.mvpi           = None
         self.mvp32          = None
-        self.mouse_state    = None
         self.series         = []
         self.graph_artists  = []
         self.border_lines   = glotlib.miter_lines.from_points([(0, 0)] * 6)
@@ -129,16 +116,16 @@ class Plot:
         self.label_font = label_font or fonts.vera(12, 0)
 
         for _ in range(max_h_ticks):
-            self.h_ticks.append(Label(window, (0, 0), '', self.label_font,
+            self.h_ticks.append(Label(context, (0, 0), '', self.label_font,
                                       anchor='N'))
         for _ in range(max_v_ticks):
-            self.v_ticks.append(Label(window, (0, 0), '', self.label_font,
+            self.v_ticks.append(Label(context, (0, 0), '', self.label_font,
                                       anchor='E'))
 
-        self.x_label = Label(window, (0, 0), '', self.label_font, anchor='N',
+        self.x_label = Label(context, (0, 0), '', self.label_font, anchor='N',
                              visible=False)
         self.x_label_side = 'bottom'
-        self.y_label = Label(window, (0, 0), '', self.label_font, anchor='S',
+        self.y_label = Label(context, (0, 0), '', self.label_font, anchor='S',
                              visible=False, theta=math.pi / 2)
         self.y_label_side = 'left'
 
@@ -186,7 +173,7 @@ class Plot:
     def _handle_resize(self):
         p_w    = self.w
         p_h    = self.h
-        xc, yc = self._window_to_data(self.x + self.w / 2, self.y + self.h / 2)
+        xc, yc = self._context_to_data(self.x + self.w / 2, self.y + self.h / 2)
 
         self._gen_bounds()
 
@@ -200,12 +187,12 @@ class Plot:
         self._gen_ticks()
 
     def _gen_bounds(self):
-        x = self.x = int((self.bounds[0] + PAD_L) * self.window.w_w)
-        y = self.y = int((self.bounds[1] + PAD_B) * self.window.w_h)
+        x = self.x = int((self.bounds[0] + PAD_L) * self.context.w_w)
+        y = self.y = int((self.bounds[1] + PAD_B) * self.context.w_h)
         w = self.w = (int((self.bounds[2] - self.bounds[0] - PAD_L) *
-                      self.window.w_w))
+                      self.context.w_w))
         h = self.h = (int((self.bounds[3] - self.bounds[1] - PAD_B) *
-                      self.window.w_h))
+                      self.context.w_h))
 
         x += 0.5
         y += 0.5
@@ -217,10 +204,10 @@ class Plot:
         y += 0.5
         w -= 1
         h -= 1
-        self.fb_x  = round(x * self.window.fb_w / self.window.w_w)
-        self.fb_y  = round(y * self.window.fb_h / self.window.w_h)
-        self.fb_w  = round(w * self.window.fb_w / self.window.w_w)
-        self.fb_h  = round(h * self.window.fb_h / self.window.w_h)
+        self.fb_x  = round(x * self.context.fb_w / self.context.w_w)
+        self.fb_y  = round(y * self.context.fb_h / self.context.w_h)
+        self.fb_w  = round(w * self.context.fb_w / self.context.w_w)
+        self.fb_h  = round(h * self.context.fb_h / self.context.w_h)
 
     def _renormalize(self, l, r, b, t):
         self.rmatrix  = matrix.ortho(l, r, b, t, -1, 1, dtype=np.float64)
@@ -284,17 +271,17 @@ class Plot:
         self.mvp   = matrix.ortho(ml, mr, mb, mt, -1, 1, dtype=np.float64)
         self.mvpi  = matrix.unortho(ml, mr, mb, mt, -1, 1, dtype=np.float64)
         self.mvp32 = np.array(self.mvp, dtype=np.float32)
-        self.window.mark_dirty()
+        self.context.mark_dirty()
 
-        K        = 2**(23 - 2)
-        window_w = self.w
-        window_h = self.h
-        mvp_w    = 2 * self.mvpi[0][0]
-        mvp_h    = 2 * self.mvpi[1][1]
-        max_x    = max(abs(ml), abs(mr))
-        max_y    = max(abs(mb), abs(mt))
-        renorm_x = (max_x > mvp_w * K / window_w)
-        renorm_y = (max_y > mvp_h * K / window_h)
+        K         = 2**(23 - 2)
+        context_w = self.w
+        context_h = self.h
+        mvp_w     = 2 * self.mvpi[0][0]
+        mvp_h     = 2 * self.mvpi[1][1]
+        max_x     = max(abs(ml), abs(mr))
+        max_y     = max(abs(mb), abs(mt))
+        renorm_x  = (max_x > mvp_w * K / context_w)
+        renorm_y  = (max_y > mvp_h * K / context_h)
         if renorm_x or renorm_y:
             self._renormalize(l, r, b, t)
 
@@ -324,65 +311,23 @@ class Plot:
         h = ry * 2 * self.mvpi[1][1] * self.rmatrixi[1][1]
         self._gen_mvp_from_dimensions_and_point(w, h, d_point, p_point)
 
-    def _window_to_data(self, x, y):
+    def _context_to_data(self, x, y):
         '''
-        Converts a window coordinate to a data coordinate.
+        Converts a context (window) coordinate to a data coordinate.
         '''
         x = 2 * (x - self.x) / self.w - 1
         y = 2 * (y - self.y) / self.h - 1
         v = self.rmatrixi @ self.mvpi @ (x, y, 0, 1)
         return v[0], v[1]
 
-    def _data_to_window(self, x, y):
+    def _data_to_context(self, x, y):
         '''
-        Converts a data coordinate to a window coordinate.
+        Converts a data coordinate to a context (window) coordinate.
         '''
         x, y, _, _ = self.mvp @ self.rmatrix @ (x, y, 0, 1)
         y = (y + 1) * self.h / 2 + self.y
         x = (x + 1) * self.w / 2 + self.x
         return x, y
-
-    def handle_mouse_down(self, mbs):
-        if self.mouse_state:
-            return
-
-        if mbs.button == constants.MOUSE_BUTTON_LEFT:
-            self.mouse_state = DragState(self, mbs)
-
-    def handle_mouse_moved(self, x, y):
-        # print('%f x %f -> %.20f x %.20f' %
-        #       (x, y, *self._window_to_data(x, y)))
-        if self.mouse_state:
-            self.mouse_state.handle_mouse_moved(x, y)
-
-    def handle_mouse_up(self, mbs):
-        if not self.mouse_state:
-            return
-        if mbs.button != self.mouse_state.mbs.button:
-            return
-
-        self.mouse_state = None
-
-    def handle_mouse_scrolled(self, x, y, dx, dy, shift, alt):
-        dx = max(dx, -99)
-        dx = min(dx, 99)
-        dy = max(dy, -99)
-        dy = min(dy, 99)
-        if self.aspect == SquareAspect:
-            rx = ry = 1 - dy / 100
-        elif shift:
-            rx = 1 + dx / 100
-            ry = 1 - dy / 100
-        elif alt:
-            rx = 1
-            ry = 1 - dy / 100
-        else:
-            rx = ry = 1 - dy / 100
-
-        fx, fy = self._window_to_data(x, y)
-        self._gen_mvp_from_point((fx, fy), (x, y), rx=rx, ry=ry)
-        self._gen_ticks()
-        self._update_shared_axes()
 
     def _add_series(self, cls, points=None, X=None, Y=None, color=None,
                     **kwargs):
@@ -495,7 +440,7 @@ class Plot:
             self.x_label.hide()
         self.x_label_side = side
         self._gen_labels()
-        self.window.mark_dirty()
+        self.context.mark_dirty()
 
     def set_y_label(self, t, side='left'):
         self.y_label.set_text(t)
@@ -505,25 +450,25 @@ class Plot:
             self.y_label.hide()
         self.y_label_side = side
         self._gen_labels()
-        self.window.mark_dirty()
+        self.context.mark_dirty()
 
     def show(self):
         self.visible = True
-        self.window.mark_dirty()
+        self.context.mark_dirty()
 
     def hide(self):
         self.visible = False
-        self.window.mark_dirty()
+        self.context.mark_dirty()
 
     def set_bounds(self, bounds, **kwargs):
-        self.window.set_plot_bounds(self, bounds, **kwargs)
+        self.context.set_plot_bounds(self, bounds, **kwargs)
 
     def draw(self, t):
-        GL.glViewport(0, 0, self.window.fb_w, self.window.fb_h)
+        GL.glViewport(0, 0, self.context.fb_w, self.context.fb_h)
         self.border_lines.bind(0)
-        self.border_lines.use_program(self.border_width, 0, self.window.mvp,
+        self.border_lines.use_program(self.border_width, 0, self.context.mvp,
                                       (0, 0, 0, 1),
-                                      (self.window.w_w, self.window.w_h))
+                                      (self.context.w_w, self.context.w_h))
         self.border_lines.draw()
 
         self.label_font.bind(0)
@@ -533,11 +478,11 @@ class Plot:
         programs.text.uniform1i('u_sampler', 0)
         GL.glEnable(GL.GL_BLEND)
         for h_t in self.h_ticks:
-            h_t.draw_batched(self.window.mvp)
+            h_t.draw_batched(self.context.mvp)
         for v_t in self.v_ticks:
-            v_t.draw_batched(self.window.mvp)
-        self.x_label.draw_batched(self.window.mvp)
-        self.y_label.draw_batched(self.window.mvp)
+            v_t.draw_batched(self.context.mvp)
+        self.x_label.draw_batched(self.context.mvp)
+        self.y_label.draw_batched(self.context.mvp)
         GL.glDisable(GL.GL_BLEND)
 
         GL.glViewport(self.fb_x, self.fb_y, self.fb_w, self.fb_h)

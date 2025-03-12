@@ -1,4 +1,3 @@
-import glfw
 from OpenGL import GL
 
 import glotlib.plot
@@ -88,55 +87,29 @@ def _bounds(b, pad_l=PAD_H, pad_r=PAD_H, pad_b=PAD_V, pad_t=PAD_V):
             pad_b + (1 - (pad_b + pad_t))*c[3])
 
 
-MOUSE_BUTTONS = {
-    glfw.MOUSE_BUTTON_LEFT   : constants.MOUSE_BUTTON_LEFT,
-    glfw.MOUSE_BUTTON_RIGHT  : constants.MOUSE_BUTTON_RIGHT,
-    glfw.MOUSE_BUTTON_MIDDLE : constants.MOUSE_BUTTON_MIDDLE,
-}
-
-
-class MouseButtonState:
-    def __init__(self, plot, button, x, y, mods):
-        self.plot    = plot
-        self.button  = button
-        self.click_x = x
-        self.click_y = y
-        self.mods    = mods
-
-
-class Window:
+class Context:
     def __init__(self, w, h, x=100, y=100, name='', msaa=None,
                  clear_color=(1, 1, 1)):
-        glotlib.main.add_window(self)
+        glotlib.main.add_context(self)
 
-        glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
-        glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
-        glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, glfw.TRUE)
-        glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-        if msaa is not None:
-            glfw.window_hint(glfw.SAMPLES, 4)
-        self.window = glfw.create_window(w, h, name, None, None)
+        # TODO:
+        # This code actually creates the window and makes the OpenGL context
+        # current.  Instead, we should get the context passed in from somewhere
+        # else so that we can extract parameters from it somehow.
+        #
+        # glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+        # glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+        # glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, glfw.TRUE)
+        # glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+        # if msaa is not None:
+        #     glfw.window_hint(glfw.SAMPLES, 4)
+        # self.window = glfw.create_window(w, h, name, None, None)
+        #
+        # glfw.make_context_current(self.window)
+        #
+        # self.w_w, self.w_h   = glfw.get_window_size(self.window)
+        # self.fb_w, self.fb_h = glfw.get_framebuffer_size(self.window)
 
-        glfw.set_window_pos(self.window, x, y)
-        glfw.set_window_size_limits(self.window, 16, 16,
-                                    glfw.DONT_CARE, glfw.DONT_CARE)
-        glfw.set_window_size_callback(
-            self.window, self._handle_window_size_changed)
-        glfw.set_framebuffer_size_callback(
-            self.window, self._handle_framebuffer_size_changed)
-        glfw.set_mouse_button_callback(
-            self.window, self._handle_mouse_button_callback)
-        glfw.set_cursor_pos_callback(self.window, self._handle_mouse_moved)
-        glfw.set_scroll_callback(self.window, self._handle_mouse_scrolled)
-        glfw.set_key_callback(self.window, self._handle_key_event)
-        glfw.set_window_refresh_callback(self.window,
-                                         self._handle_window_refresh)
-        glfw.set_window_iconify_callback(self.window,
-                                         self._handle_window_iconified)
-        glfw.make_context_current(self.window)
-
-        self.w_w, self.w_h   = glfw.get_window_size(self.window)
-        self.fb_w, self.fb_h = glfw.get_framebuffer_size(self.window)
         self.r_w = self.r_h  = 0
         self.mvp = matrix.ortho(0, self.w_w, 0, self.w_h, -1, 1)
         self._update_ratios()
@@ -151,15 +124,13 @@ class Window:
         else:
             self.msaa_samples = None
 
-        self.mouse_button_state = [None] * (glfw.MOUSE_BUTTON_LAST + 1)
-
         self.plots      = []
         self.labels     = []
         self._dirty     = True
         self._iconified = False
 
     def _destroy(self):
-        glfw.destroy_window(self.window)
+        pass
 
     def _update_ratios(self):
         # print('Screen dimensions %u x %u.  Framebuffer dimensions %u x %u.' %
@@ -167,93 +138,9 @@ class Window:
         self.r_w = self.fb_w / self.w_w if self.w_w else 0
         self.r_h = self.fb_h / self.w_h if self.w_h else 0
 
-    def _handle_window_size_changed(self, _window, w, h):
-        if self._iconified:
-            return
-
-        self.w_w, self.w_h = w, h
-        self.mvp = matrix.ortho(0, self.w_w, 0, self.w_h, -1, 1)
-        self._update_ratios()
-        for p in self.plots:
-            p._handle_resize()
-        for l in self.labels:
-            l._handle_resize()
-        self.handle_window_size_changed()
-
-    def _handle_framebuffer_size_changed(self, _window, w, h):
-        if self._iconified:
-            return
-
-        self.fb_w, self.fb_h = w, h
-        self._update_ratios()
-        self.handle_framebuffer_size_changed()
-
-    def _handle_window_iconified(self, _window, iconified):
-        self._iconified = iconified
-
-    def handle_window_size_changed(self):
-        pass
-
-    def handle_framebuffer_size_changed(self):
-        pass
-
-    def handle_mouse_moved(self, x, y):
-        pass
-
-    def handle_key_press(self, key):
-        pass
-
-    def _handle_window_refresh(self, _window):
+    def _handle_context_refresh(self, _context):
         self._dirty = True
         self._draw(glotlib.get_frame_time())
-
-    def _handle_mouse_button_callback(self, _window, button, action, mods):
-        mb = MOUSE_BUTTONS.get(button)
-        if mb is None:
-            return
-
-        if action == glfw.PRESS:
-            x, y = glfw.get_cursor_pos(self.window)
-            y    = self.w_h - y
-            plot = self.find_plot(x, y)
-            if plot:
-                mbs = MouseButtonState(plot, MOUSE_BUTTONS[button], x, y, mods)
-                self.mouse_button_state[button] = mbs
-                plot.handle_mouse_down(mbs)
-        elif action == glfw.RELEASE:
-            mbs = self.mouse_button_state[button]
-            if mbs:
-                mbs.plot.handle_mouse_up(mbs)
-                self.mouse_button_state[button] = None
-
-    def _handle_mouse_moved(self, _window, x, y):
-        y = self.w_h - y
-        for p in self.plots:
-            p.handle_mouse_moved(x, y)
-        self.handle_mouse_moved(x, y)
-
-    def _handle_mouse_scrolled(self, _window, dx, dy):
-        x, y = glfw.get_cursor_pos(self.window)
-        y    = self.w_h - y
-        plot = self.find_plot(x, y)
-        if plot:
-            ls = (glfw.get_key(self.window, glfw.KEY_LEFT_SHIFT) == glfw.PRESS)
-            rs = (glfw.get_key(self.window, glfw.KEY_RIGHT_SHIFT) == glfw.PRESS)
-            la = (glfw.get_key(self.window, glfw.KEY_LEFT_ALT) == glfw.PRESS)
-            ra = (glfw.get_key(self.window, glfw.KEY_RIGHT_ALT) == glfw.PRESS)
-            plot.handle_mouse_scrolled(x, y, dx, dy, ls or rs, la or ra)
-
-    def _handle_key_event(self, _window, key, _scancode, action, _mods):
-        if action != glfw.PRESS:
-            return
-        if key == glfw.KEY_SPACE:
-            x, y = glfw.get_cursor_pos(self.window)
-            y    = self.w_h - y
-            p    = self.find_plot(x, y)
-            if p:
-                p.snap_bounds()
-        else:
-            self.handle_key_press(key)
 
     def _draw(self, t):
         if not self.update_geometry(t) and not self._dirty:
@@ -279,7 +166,7 @@ class Window:
         return True
 
     def resize(self, w, h):
-        glfw.set_window_size(self.window, w, h)
+        raise Exception('resize() not supported')
 
     def mark_dirty(self):
         if not self._dirty:
@@ -294,13 +181,13 @@ class Window:
 
     def add_plot(self, bounds=111, **kwargs):
         '''
-        Adds a rectangular plot to the window.  The bounds value selects the
+        Adds a rectangular plot to the context.  The bounds value selects the
         position of the plot and can have one of the following formats:
 
             HWP - a set of 3 integers encoded either as a 3-digit decimal
                   number with H, W, P in the hundreds, tens and ones positions,
                   respectively, or as a 3-tuple (H, W, P).  H and W divide the
-                  window space into a grid of height H and width W and P
+                  context space into a grid of height H and width W and P
                   selects the grid cell numbered from 1 to H*W left-to-right
                   and then top-to-bottom.
 
@@ -312,7 +199,7 @@ class Window:
             (x0, y0, x1, y1) - a 4-tuple specifying the bottom-left and top-
                   right positions of the bounding rectangle, expressed as a
                   fraction from 0 to 1 which scaled with the dimensions of the
-                  enclosing window.
+                  enclosing context.
 
         The limits 4-tuple can be used to specify the (x0, y0, x1, y1) data
         limits that the plot will initially be looking at.
@@ -351,27 +238,24 @@ class Window:
         return None
 
     def close(self):
-        glfw.set_window_should_close(self.window, glfw.TRUE)
+        raise Exception('close() not supported')
 
     def should_close(self):
-        return glfw.window_should_close(self.window)
+        raise Exception('should_close() not supported')
 
     def swap_buffers(self):
-        glfw.swap_buffers(self.window)
+        # TODO: This code swaps the buffer being displayed on screen with the
+        # buffer that was just rendered into, to display the newly-rendered
+        # graphics.
+        # glfw.swap_buffers(self.window)
 
     def get_mouse_pos(self):
         '''
         Returns a tuple:
 
-            (window_x, window_y, plot, data_x, data_y)
+            (context_x, context_y, plot, data_x, data_y)
 
         If the mouse is not over a plot then the last three elements will be
         None.
         '''
-        x, y = glfw.get_cursor_pos(self.window)
-        y    = self.w_h - y
-        p    = self.find_plot(x, y)
-        if p is not None:
-            px, py = p._window_to_data(x, y)
-            return (x, y, p, px, py)
-        return (x, y, None, None, None)
+        return (0, 0, None, None, None)

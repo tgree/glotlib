@@ -155,5 +155,5 @@ class Series:
         if self.point_width and len(self.vert_vbo) >= 1:
             GL.glBindVertexArray(self.point_vao)
             programs.frag_points.use(z, mvp, color=self.color)
-            GL.glPointSize(self.point_width * self.plot.window.r_w)
+            GL.glPointSize(self.point_width * self.plot.context.r_w)
             GL.glDrawArrays(GL.GL_POINTS, 0, len(self.vert_vbo))

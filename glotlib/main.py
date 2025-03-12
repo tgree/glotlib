@@ -1,7 +1,6 @@
 import time
 import threading
 
-import glfw
 from OpenGL import GL
 
 from . import programs
@@ -10,7 +9,7 @@ from . import fonts
 
 INITED          = False
 FONTS_INITED    = False
-WINDOWS         = set()
+CONTEXTS        = set()
 TASKS           = set()
 FRAME           = 0
 T0              = 0
@@ -23,7 +22,8 @@ def init():
     if INITED:
         return
 
-    glfw.init()
+    # TODO: This is where maybe you can init the external framework?
+    # glfw.init()
     INITED = True
 
 
@@ -41,13 +41,13 @@ def init_fonts():
 
 def add_window(w):
     init()
-    WINDOWS.add(w)
+    CONTEXTS.add(w)
 
 
-def draw_windows(t):
+def draw_contexts(t):
     updated = False
 
-    for w in WINDOWS:
+    for w in CONTEXTS:
         updated = updated or w._draw(t)
 
     return updated
@@ -74,26 +74,20 @@ def animate():
     fps_t0 = T0
     del_ws = []
 
-    # glfw.swap_interval(1)
-    # GL.glClearDepth(1.)
-    # GL.glEnable(GL.GL_DEPTH_TEST)
-    # GL.glDepthFunc(GL.GL_LESS)
-    # GL.glEnable(GL.GL_BLEND)
-
-    draw_windows(0)
+    draw_contexts(0)
     while True:
-        # GL.glFinish()
-        glfw.poll_events()
+        # TODO: This is where we were polling for events.
+        # glfw.poll_events()
 
-        del_ws = [w for w in WINDOWS if w.should_close()]
+        del_ws = [w for w in CONTEXTS if w.should_close()]
         for w in del_ws:
             w._destroy()
-            WINDOWS.remove(w)
-        if not WINDOWS:
+            CONTEXTS.remove(w)
+        if not CONTEXTS:
             break
 
         t = time.time()
-        if not draw_windows(t - T0):
+        if not draw_contexts(t - T0):
             time.sleep(0.005)
         FRAME += 1
 
@@ -108,7 +102,8 @@ def animate():
         fps_f0 = FRAME
         fps_t0 = t
 
-    glfw.terminate()
+    # TODO: This is where we shut down glfw.
+    # glfw.terminate()
 
 
 def interact():
@@ -121,23 +116,25 @@ def interact():
     T0 = time.time()
 
     SHOULD_INTERACT = True
-    draw_windows(0)
+    draw_contexts(0)
     while SHOULD_INTERACT:
         glfw.wait_events()
 
-        del_ws = [w for w in WINDOWS if w.should_close()]
+        del_ws = [w for w in CONTEXTS if w.should_close()]
         for w in del_ws:
             w._destroy()
-            WINDOWS.remove(w)
-        if not WINDOWS:
+            CONTEXTS.remove(w)
+        if not CONTEXTS:
             break
 
         t = time.time()
-        draw_windows(t - T0)
+        draw_contexts(t - T0)
 
 
 def wakeup():
-    glfw.post_empty_event()
+    # TODO: This is where we signaled the interact() thread to check its event
+    # queue.
+    # glfw.post_empty_event()
 
 
 def stop():
