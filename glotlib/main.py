@@ -138,6 +138,7 @@ def wakeup():
     # glfw.post_empty_event()
     pass
 
+
 def stop():
     global SHOULD_INTERACT
     SHOULD_INTERACT = False
