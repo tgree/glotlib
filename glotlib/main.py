@@ -17,13 +17,13 @@ FPS             = 0
 SHOULD_INTERACT = False
 
 
-def init():
+def init(): # initialization is done in the widget itself might be redundant
     global INITED
-    if INITED:
-        return
+    # if INITED:
+    #     return
 
-    # TODO: This is where maybe you can init the external framework?
-    # glfw.init()
+    # # TODO: This is where maybe you can init the external framework?
+    # # glfw.init()
     INITED = True
 
 
@@ -39,7 +39,7 @@ def init_fonts():
     FONTS_INITED = True
 
 
-def add_window(w):
+def add_context(w):
     init()
     CONTEXTS.add(w)
 
@@ -136,7 +136,7 @@ def wakeup():
     # TODO: This is where we signaled the interact() thread to check its event
     # queue.
     # glfw.post_empty_event()
-
+    pass
 
 def stop():
     global SHOULD_INTERACT

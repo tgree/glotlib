@@ -110,14 +110,15 @@ class Context:
         # self.w_w, self.w_h   = glfw.get_window_size(self.window)
         # self.fb_w, self.fb_h = glfw.get_framebuffer_size(self.window)
 
+        self.w_w, self.w_h   = w, h
+        self.fb_w, self.fb_h = (w*msaa), (h*msaa)
+
         self.r_w = self.r_h  = 0
         self.mvp = matrix.ortho(0, self.w_w, 0, self.w_h, -1, 1)
         self._update_ratios()
 
         glotlib.init_fonts()
-
-        GL.glClearColor(*clear_color, 0)
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        
         if msaa is not None:
             GL.glEnable(GL.GL_MULTISAMPLE)
             self.msaa_samples = GL.glGetIntegerv(GL.GL_SAMPLES)
@@ -149,7 +150,6 @@ class Context:
             return False
         self._dirty = False
 
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         for p in self.plots:
             if p.visible:
                 p.draw(t)
@@ -248,6 +248,7 @@ class Context:
         # buffer that was just rendered into, to display the newly-rendered
         # graphics.
         # glfw.swap_buffers(self.window)
+        pass
 
     def get_mouse_pos(self):
         '''
