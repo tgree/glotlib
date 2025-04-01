@@ -5,16 +5,32 @@ import argparse
 import math
 import time
 import sys
-import glotlib
 
-import xtalx.p_sensor
-from xtalx.tools.math import XYSeries
+import glotlib
+import numpy as np
+
 from OpenGL import GL
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QSurfaceFormat
 from PyQt5 import QtCore, QtGui, QtWidgets
+
+
+NVERTICES = 500000
+X         = np.arange(NVERTICES) * 2 * math.pi / (NVERTICES - 1)
+DY = 30000
+
+AMP_RATES = [
+    1.0,
+    0.5,
+    0.35,
+]
+THICK_RATES = [
+    0.1,
+    0.2,
+    0.5,
+]
 
 
 class MainWindow(QMainWindow):
@@ -118,6 +134,7 @@ class glotlibglotlib_context(QOpenGLWidget):
         self.timer.start(0)  # Update approximately every 16ms (~60 FPS)
 
     def update_geometry(self, t):
+        print('update_geometry %s' % t)
         for s, ar, tr in zip(self.series, AMP_RATES, THICK_RATES):
             Y = np.sin(X + ar * t) + DY
             s.set_y_data(Y)
@@ -128,6 +145,7 @@ class glotlibglotlib_context(QOpenGLWidget):
 
     def initializeGL(self):
         GL.glClearColor(1,1,1,0)
+
         glotlib.programs.load()
         self.makeCurrent()
         GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
@@ -135,7 +153,7 @@ class glotlibglotlib_context(QOpenGLWidget):
         self.glotlib_context = glotlib.Context(self.width,self.height,
                                                msaa=self.msaa) 
 
-        self.plot = self.add_plot(limits=(0, DY - 1, 2 * math.pi, DY + 1))
+        self.plot = self.glotlib_context.add_plot(limits=(0, DY - 1, 2 * math.pi, DY + 1))
 
         print('DX: %f' % (X[1] - X[0]))
         Ys = [np.sin(X + ar) + DY for ar in AMP_RATES]
@@ -149,7 +167,7 @@ class glotlibglotlib_context(QOpenGLWidget):
 
         # Mandatory Field 
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        self._dirty = True
+        self.glotlib_context._dirty = True
         self.makeCurrent()
         glotlib.main.draw_contexts(0)
 
