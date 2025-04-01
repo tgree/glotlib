@@ -1,7 +1,5 @@
 # Copyright (c) 2023 by Phase Advanced Sensor Systems, Inc.
 # All rights reserved.
-import threading
-import argparse
 import math
 import time
 import sys
@@ -10,10 +8,6 @@ import glotlib
 import numpy as np
 
 from OpenGL import GL
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QSurfaceFormat
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
@@ -33,7 +27,7 @@ THICK_RATES = [
 ]
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.setObjectName("MainWindow")
@@ -99,7 +93,6 @@ class MainWindow(QMainWindow):
         self.retranslateUi()
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(self)
-        
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
@@ -111,10 +104,8 @@ class MainWindow(QMainWindow):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.about), _translate("MainWindow", "Settings"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.settings), _translate("MainWindow", "About"))
 
-LINE_WIDTH = 1
 
-
-class glotlibglotlib_context(QOpenGLWidget):
+class glotlibglotlib_context(QtWidgets.QOpenGLWidget):
     def __init__(self):
         super().__init__()
         self.width           = 900
@@ -123,13 +114,13 @@ class glotlibglotlib_context(QOpenGLWidget):
         self.t0              = None
 
         # Manually sets OpenGl version to 3.3
-        fmt = QSurfaceFormat()
+        fmt = QtGui.QSurfaceFormat()
         fmt.setVersion(3, 3)
-        fmt.setProfile(QSurfaceFormat.CoreProfile)
-        QSurfaceFormat.setDefaultFormat(fmt)
+        fmt.setProfile(QtGui.QSurfaceFormat.CoreProfile)
+        QtGui.QSurfaceFormat.setDefaultFormat(fmt)
         self.setFormat(fmt)
 
-        self.timer = QTimer(self)
+        self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.update)
         self.timer.start(0)  # Update approximately every 16ms (~60 FPS)
 
