@@ -163,8 +163,6 @@ class Context:
 
         self.swap_buffers()
 
-        print('_draw completed')
-
         return True
 
     def resize(self, w, h):

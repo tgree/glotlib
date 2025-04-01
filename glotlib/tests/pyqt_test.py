@@ -134,7 +134,6 @@ class glotlibglotlib_context(QOpenGLWidget):
         self.timer.start(0)  # Update approximately every 16ms (~60 FPS)
 
     def update_geometry(self, t):
-        print('update_geometry %s' % t)
         for s, ar, tr in zip(self.series, AMP_RATES, THICK_RATES):
             Y = np.sin(X + ar * t) + DY
             s.set_y_data(Y)
