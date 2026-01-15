@@ -47,16 +47,25 @@ class StepSeries(series.Series):
         super().set_x_y_data(vX, vY)
 
     def append_x_y_data(self, X, Y):
+        # Append data with a step change on the left side:
+        #
+        #   *               *---*
+        #   |         or    |
+        #   *---*           *
         if len(X) == 0:
             return
 
         if len(self.vertices) != 0:
-            super().append_x_y_data([X[0]], [self.vertices[-1][1]])
+            super().append_x_y_data([self.vertices[-1][0]], [Y[0]])
 
+        # Vertices 0, 2, 4, 8 are at X[0], X[1], X[2], X[3], ...
+        # Vertices 1, 3, 5, 7 are at X[0], X[1], X[2], ...
         vX       = np.empty(len(X) * 2 - 1, dtype=np.float64)
         vX[0::2] = X
         vX[1::2] = X[0:len(X) - 1]
 
+        # Vertices 0, 2, 4, 8 are at Y[0], Y[1], Y[2], Y[3], ...
+        # Vertices 1, 3, 5, 7 are at Y[1], Y[2], Y[3], ...
         vY       = np.empty(len(Y) * 2 - 1, dtype=np.float64)
         vY[0::2] = Y
         vY[1::2] = Y[1:len(Y)]

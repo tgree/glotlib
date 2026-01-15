@@ -1,4 +1,4 @@
-GLOTLIB_VERS := 1.0.2
+GLOTLIB_VERS := 1.0.3
 MODULES := \
 	setup.cfg \
 	setup.py \
@@ -35,11 +35,11 @@ glotlib: dist/glotlib-$(GLOTLIB_VERS)-py3-none-any.whl
 
 .PHONY: install
 install: glotlib | uninstall
-	sudo $(PYTHON) -m pip install dist/glotlib-$(GLOTLIB_VERS)-py3-none-any.whl
+	sudo $(PYTHON) -m pip install dist/glotlib-$(GLOTLIB_VERS)-py3-none-any.whl --break-system-packages
 
 .PHONY: uninstall
 uninstall:
-	sudo $(PYTHON) -m pip uninstall -y glotlib
+	sudo $(PYTHON) -m pip uninstall -y glotlib --break-system-packages
 
 .PHONY: publish
 publish: glotlib
