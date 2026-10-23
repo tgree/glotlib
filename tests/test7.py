@@ -35,20 +35,22 @@ class ViewMode(Enum):
     VERTICAL    = 2
 
 
-class Delegate(glotlib.GLContextDelegate):
-    def __init__(self, ctx):
-        self.ctx       = ctx
+class App(glotlib.GLContextDelegate):
+    def __init__(self):
+        w = glotlib.glfw.Window(900, 650, msaa=4, delegate=self)
+
+        self.ctx       = w.ctx
         self.series    = []
         self.view_mode = ViewMode.HORIZONTAL
 
         for bounds, color, X in zip(H_BOUNDS, COLORS, Xs):
-            p = ctx.add_plot(bounds, limits=(0, -1, 2 * math.pi, 1))
+            p = w.ctx.add_plot(bounds, limits=(0, -1, 2 * math.pi, 1))
 
             Y = np.sin(X)
             self.series.append(p.add_lines(X=Xi, Y=Y, color=color, width=1))
 
-        ctx.add_label((.1, 12.1 / 13), 'tcdc_6_2000014_n4.csv')
-        self.fps_label = ctx.add_label((0.01, 0.01), '')
+        w.ctx.add_label((.1, 12.1 / 13), 'tcdc_6_2000014_n4.csv')
+        self.fps_label = w.ctx.add_label((0.01, 0.01), '')
 
     def _set_mode_vertical(self):
         if self.view_mode == ViewMode.VERTICAL:
@@ -88,11 +90,12 @@ class Delegate(glotlib.GLContextDelegate):
 
         return True
 
+    def run(self):
+        glotlib.glfw.animate()
+
 
 def main():
-    w = glotlib.glfw.Window(900, 650, msaa=4)
-    w.gl_context.delegate = Delegate(w.gl_context)
-    glotlib.glfw.animate()
+    App().run()
 
 
 if __name__ == '__main__':

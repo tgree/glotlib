@@ -2,7 +2,6 @@ import math
 
 import numpy as np
 
-import glotlib
 import glotlib.glfw
 
 
@@ -31,9 +30,7 @@ def tukey_window(N, R):
 
 
 w = glotlib.glfw.Window(900, 650, msaa=4)
-ctx = w.gl_context
-
-p = ctx.add_plot(limits=(0, 0, NVERTICES - 1, 1))
+p = w.ctx.add_plot(limits=(0, 0, NVERTICES - 1, 1))
 X = np.arange(NVERTICES)
 Y = tukey_window(NVERTICES, RATIO)
 p.add_lines(X=X, Y=Y)

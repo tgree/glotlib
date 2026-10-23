@@ -22,9 +22,11 @@ THICK_RATES = [
 ]
 
 
-class Delegate(glotlib.GLContextDelegate):
-    def __init__(self, ctx):
-        self.plot = ctx.add_plot(limits=(0, DY - 1, 2 * math.pi, DY + 1))
+class App(glotlib.GLContextDelegate):
+    def __init__(self):
+        w = glotlib.glfw.Window(900, 700, msaa=4, delegate=self)
+
+        self.plot = w.ctx.add_plot(limits=(0, DY - 1, 2 * math.pi, DY + 1))
 
         self.series  = [self.plot.add_lines(X=[], Y=[], width=1, point_width=1)
                         for _ in AMP_RATES[:-1]]
@@ -45,11 +47,12 @@ class Delegate(glotlib.GLContextDelegate):
 
         return True
 
+    def run(self):
+        glotlib.glfw.animate()
+
 
 def main():
-    w = glotlib.glfw.Window(900, 700, msaa=4)
-    w.gl_context.delegate = Delegate(w.gl_context)
-    glotlib.glfw.animate()
+    App().run()
 
 
 if __name__ == '__main__':

@@ -68,7 +68,7 @@ class Window:
 
         w_w, w_h = glfw.get_window_size(self.window)
         fb_w, fb_h = glfw.get_framebuffer_size(self.window)
-        self.gl_context = GLContext(self, w_w, w_h, fb_w, fb_h, msaa, **kwargs)
+        self.ctx = GLContext(self, w_w, w_h, fb_w, fb_h, msaa, **kwargs)
 
     def _destroy(self):
         glfw.destroy_window(self.window)
@@ -81,18 +81,18 @@ class Window:
 
     def _handle_window_size_changed(self, _window, w, h):
         if not self._iconified:
-            self.gl_context._handle_context_size_changed(w, h)
+            self.ctx._handle_context_size_changed(w, h)
 
     def _handle_framebuffer_size_changed(self, _window, w, h):
         if not self._iconified:
-            self.gl_context._handle_framebuffer_size_changed(w, h)
+            self.ctx._handle_framebuffer_size_changed(w, h)
 
     def _handle_window_iconified(self, _window, iconified):
         self._iconified = iconified
 
     def _handle_window_refresh(self, _window):
-        self.gl_context._dirty = True
-        self.gl_context._draw(main.get_frame_time())
+        self.ctx._dirty = True
+        self.ctx._draw(main.get_frame_time())
 
     def _handle_mouse_button_callback(self, _window, button, action, mods):
         mb = MOUSE_BUTTONS.get(button)
@@ -103,14 +103,14 @@ class Window:
         if action is None:
             return
 
-        self.gl_context._handle_mouse_button_callback(mb, action, mods)
+        self.ctx._handle_mouse_button_callback(mb, action, mods)
 
     def _handle_mouse_moved(self, _window, x, y):
-        y = self.gl_context.ctx_h - y
-        self.gl_context._handle_mouse_moved(x, y)
+        y = self.ctx.ctx_h - y
+        self.ctx._handle_mouse_moved(x, y)
 
     def _handle_mouse_scrolled(self, _window, dx, dy):
-        self.gl_context._handle_mouse_scrolled(dx, dy)
+        self.ctx._handle_mouse_scrolled(dx, dy)
 
     def _handle_key_event(self, _window, key, _scancode, action, _mods):
         action = KEY_ACTIONS.get(action)
@@ -121,7 +121,7 @@ class Window:
         if key is None:
             return
 
-        self.gl_context._handle_key_event(key, action)
+        self.ctx._handle_key_event(key, action)
 
     def resize(self, w, h):
         glfw.set_window_size(self.window, w, h)

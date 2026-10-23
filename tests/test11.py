@@ -7,8 +7,7 @@ NPOINTS = 5000000
 
 
 w = glotlib.glfw.Window(512, 512, msaa=4)
-ctx = w.gl_context
-p = ctx.add_plot(limits=(-6, -6, 6, 6))
+p = w.ctx.add_plot(limits=(-6, -6, 6, 6))
 X = np.random.normal(0, 1, NPOINTS)
 Y = np.random.normal(0, 1, NPOINTS)
 p.add_points(X=X, Y=Y)

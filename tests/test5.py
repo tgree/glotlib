@@ -10,13 +10,15 @@ VERTICES = [
 ]
 
 
-class Delegate(glotlib.GLContextDelegate):
-    def __init__(self, ctx):
-        self.ctx = ctx
-        self.plot = ctx.add_plot(limits=(0, 0, 100, 100))
+class App(glotlib.GLContextDelegate):
+    def __init__(self):
+        w = glotlib.glfw.Window(900, 700, msaa=None, delegate=self)
+
+        self.ctx = w.ctx
+        self.plot = w.ctx.add_plot(limits=(0, 0, 100, 100))
         self.plot.add_lines(VERTICES, color=(0, 0.8, 0.2, 0), width=20,
                             point_width=20)
-        self.label = ctx.add_label((0.01, 0.01), '')
+        self.label = w.ctx.add_label((0.01, 0.01), '')
 
         glotlib.glfw.periodic(1, self.update_periodic)
 
@@ -26,11 +28,12 @@ class Delegate(glotlib.GLContextDelegate):
     def update_periodic(self, _t):
         self.ctx.mark_dirty()
 
+    def run(self):
+        glotlib.glfw.interact()
+
 
 def main():
-    w = glotlib.glfw.Window(900, 700, msaa=None)
-    w.gl_context.delegate = Delegate(w.gl_context)
-    glotlib.glfw.interact()
+    App().run()
 
 
 if __name__ == '__main__':

@@ -34,7 +34,7 @@ def draw_windows(t):
     updated = False
 
     for w in WINDOWS:
-        updated = updated or w.gl_context._draw(t)
+        updated = updated or w.ctx._draw(t)
 
     return updated
 
