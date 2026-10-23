@@ -4,6 +4,7 @@ from enum import Enum
 import numpy as np
 
 import glotlib
+import glotlib.glfw
 
 
 NVERTICES = 500000
@@ -34,27 +35,26 @@ class ViewMode(Enum):
     VERTICAL    = 2
 
 
-class Window(glotlib.Window):
-    def __init__(self):
-        super().__init__(900, 650, msaa=4)
-
+class Delegate(glotlib.GLContextDelegate):
+    def __init__(self, ctx):
+        self.ctx       = ctx
         self.series    = []
         self.view_mode = ViewMode.HORIZONTAL
 
         for bounds, color, X in zip(H_BOUNDS, COLORS, Xs):
-            p = self.add_plot(bounds, limits=(0, -1, 2 * math.pi, 1))
+            p = ctx.add_plot(bounds, limits=(0, -1, 2 * math.pi, 1))
 
             Y = np.sin(X)
             self.series.append(p.add_lines(X=Xi, Y=Y, color=color, width=1))
 
-        self.add_label((.1, 12.1 / 13), 'tcdc_6_2000014_n4.csv')
-        self.fps_label = self.add_label((0.01, 0.01), '')
+        ctx.add_label((.1, 12.1 / 13), 'tcdc_6_2000014_n4.csv')
+        self.fps_label = ctx.add_label((0.01, 0.01), '')
 
     def _set_mode_vertical(self):
         if self.view_mode == ViewMode.VERTICAL:
             return
 
-        for bounds, p in zip(V_BOUNDS, self.plots):
+        for bounds, p in zip(V_BOUNDS, self.ctx.plots):
             p.set_bounds(bounds)
         self.view_mode = ViewMode.VERTICAL
 
@@ -62,17 +62,17 @@ class Window(glotlib.Window):
         if self.view_mode == ViewMode.HORIZONTAL:
             return
 
-        for bounds, p in zip(H_BOUNDS, self.plots):
+        for bounds, p in zip(H_BOUNDS, self.ctx.plots):
             p.set_bounds(bounds)
         self.view_mode = ViewMode.HORIZONTAL
 
     def handle_key_press(self, key):
-        if key == glotlib.KEY_ESCAPE:
+        if key == glotlib.constants.KEY_ESCAPE:
             if self.view_mode == ViewMode.HORIZONTAL:
                 self._set_mode_vertical()
             else:
                 self._set_mode_horizontal()
-            self.mark_dirty()
+            self.ctx.mark_dirty()
 
     def update_geometry(self, t):
         for s, tr, X in zip(self.series, THICK_RATES, Xs):
@@ -80,7 +80,7 @@ class Window(glotlib.Window):
             s.set_y_data(Y)
             s.width = 2 * (np.sin(2 * math.pi * tr * t) + 1) + 1
 
-        fps = glotlib.get_fps()
+        fps = glotlib.glfw.get_fps()
         if fps is not None:
             self.fps_label.set_text('FPS: %.1f' % fps)
         else:
@@ -90,8 +90,9 @@ class Window(glotlib.Window):
 
 
 def main():
-    Window()
-    glotlib.animate()
+    w = glotlib.glfw.Window(900, 650, msaa=4)
+    w.gl_context.delegate = Delegate(w.gl_context)
+    glotlib.glfw.animate()
 
 
 if __name__ == '__main__':

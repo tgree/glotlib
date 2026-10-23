@@ -3,6 +3,7 @@ import math
 import numpy as np
 
 import glotlib
+import glotlib.glfw
 
 
 NVERTICES = 500000
@@ -21,11 +22,9 @@ THICK_RATES = [
 ]
 
 
-class Window(glotlib.Window):
-    def __init__(self):
-        super().__init__(900, 700, msaa=4)
-
-        self.plot = self.add_plot(limits=(0, DY - 1, 2 * math.pi, DY + 1))
+class Delegate(glotlib.GLContextDelegate):
+    def __init__(self, ctx):
+        self.plot = ctx.add_plot(limits=(0, DY - 1, 2 * math.pi, DY + 1))
 
         print('DX: %f' % (X[1] - X[0]))
         Ys = [np.sin(X + ar) + DY for ar in AMP_RATES]
@@ -45,8 +44,10 @@ class Window(glotlib.Window):
 
 
 def main():
-    Window()
-    glotlib.animate()
+    w = glotlib.glfw.Window(900, 700, msaa=4)
+    w.gl_context.delegate = Delegate(w.gl_context)
+
+    glotlib.glfw.animate()
 
 
 if __name__ == '__main__':

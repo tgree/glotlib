@@ -33,11 +33,11 @@ ALIGNMENTS = {
 
 
 class Label:
-    def __init__(self, window, pos, text, font=None, theta=0, anchor='SW',
+    def __init__(self, ctx, pos, text, font=None, theta=0, anchor='SW',
                  visible=True):
         assert font
 
-        self.window    = window
+        self.ctx       = ctx
         self.font      = font
         self.pos       = (round(pos[0]), round(pos[1]))
         self.theta     = theta
@@ -125,26 +125,26 @@ class Label:
 
     def show(self):
         self.visible = True
-        self.window.mark_dirty()
+        self.ctx.mark_dirty()
 
     def hide(self):
         self.visible = False
-        self.window.mark_dirty()
+        self.ctx.mark_dirty()
 
 
 class FlexLabel(Label):
-    def __init__(self, window, pos, *args, **kwargs):
+    def __init__(self, ctx, pos, *args, **kwargs):
         self.flex_pos = pos
-        pos           = (pos[0] * window.w_w, pos[1] * window.w_h)
-        super().__init__(window, pos, *args, **kwargs)
+        pos           = (pos[0] * ctx.ctx_w, pos[1] * ctx.ctx_h)
+        super().__init__(ctx, pos, *args, **kwargs)
 
     def _handle_resize(self):
-        pos = (self.flex_pos[0] * self.window.w_w,
-               self.flex_pos[1] * self.window.w_h)
+        pos = (self.flex_pos[0] * self.ctx.ctx_w,
+               self.flex_pos[1] * self.ctx.ctx_h)
         super().set_pos(pos)
 
     def set_pos(self, pos):
         self.flex_pos = pos
-        pos           = (pos[0] * self.window.w_w,
-                         pos[1] * self.window.w_h)
+        pos           = (pos[0] * self.ctx.ctx_w,
+                         pos[1] * self.ctx.ctx_h)
         super().set_pos(pos)

@@ -1,9 +1,8 @@
 from . import miter_lines  # noqa: F401
 from .label import Label
-from .main import (init_fonts, animate, interact, stop, wakeup, get_frame_time,
-                   FPS, get_fps, periodic)
+from .main import init_fonts
 from .program import Program
-from .window import Window
+from .gl_context import GLContextDelegate
 
 from .constants import (  # noqa: F401
     MOUSE_BUTTON_LEFT,
@@ -18,16 +17,8 @@ from .constants import (  # noqa: F401
 
 
 __all__ = [
-    'animate',
-    'FPS',
-    'get_fps',
-    'get_frame_time',
+    'GLContextDelegate',
     'init_fonts',
-    'interact',
-    'periodic',
     'Label',
     'Program',
-    'stop',
-    'wakeup',
-    'Window',
 ]
