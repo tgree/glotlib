@@ -1,3 +1,5 @@
+from OpenGL import GL
+
 import glfw
 
 from .. import gl_context
@@ -8,6 +10,7 @@ class GLContext(gl_context.GLContext):
     def __init__(self, window, *args, **kwargs):
         self._glfw_window = window
         super().__init__(*args, **kwargs)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
     def _is_key_down(self, key):
         return self._glfw_window._is_key_down(key)

@@ -111,8 +111,8 @@ class GLContextDelegate:
 
 
 class GLContext:
-    def __init__(self, ctx_w, ctx_h, fb_w, fb_h, msaa, clear_color=(1, 1, 1),
-                 delegate=None):
+    def __init__(self, ctx_w, ctx_h, fb_w, fb_h, msaa,
+                 clear_color=(1.0, 1.0, 1.0), delegate=None):
         self.ctx_w, self.ctx_h = ctx_w, ctx_h
         self.fb_w, self.fb_h = fb_w, fb_h
         self.delegate = delegate or GLContextDelegate()
@@ -123,7 +123,6 @@ class GLContext:
         glotlib.init_fonts()
 
         GL.glClearColor(*clear_color, 0)
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         if msaa is not None:
             GL.glEnable(GL.GL_MULTISAMPLE)
 
